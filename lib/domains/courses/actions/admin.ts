@@ -11,7 +11,7 @@ import {
 } from "@/lib/errors";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { AUDIO_BUCKET, contentTypeToExtension } from "../audio.shared";
-import * as audioVersions from "../audio-versions.service";
+import * as audioVersions from "../audio.service";
 import {
   prepareAudioUploadSchema,
   registerAudioVersionSchema,

@@ -2,6 +2,9 @@ import { Suspense } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getAdminCourseBySlug } from "@/lib/domains/courses/queries/admin";
+import { AdminToolbar } from "@/components/admin/admin-toolbar";
+import { DataTable, type Column } from "@/components/admin/data-table";
+import { Badge } from "@/components/ui/badge";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -10,9 +13,52 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
-import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 
 type Props = { params: Promise<{ slug: string }> };
+
+type Course = NonNullable<Awaited<ReturnType<typeof getAdminCourseBySlug>>>;
+type PackRow = Course["packs"][number];
+
+function buildPackColumns(courseSlug: string): Column<PackRow>[] {
+  return [
+    {
+      header: "#",
+      cell: (p) => (
+        <span className="text-muted-foreground tabular-nums">{p.position}</span>
+      ),
+      className: "w-12",
+    },
+    {
+      header: "Title",
+      cell: (p) => (
+        <Link
+          href={`/admin/courses/${courseSlug}/${p.slug}`}
+          className="font-medium hover:underline"
+        >
+          {p.title}
+        </Link>
+      ),
+    },
+    {
+      header: "Slug",
+      cell: (p) => (
+        <span className="text-muted-foreground font-mono text-xs">
+          {p.slug}
+        </span>
+      ),
+    },
+    {
+      header: "Status",
+      cell: (p) => (
+        <Badge variant={p.isPublished ? "default" : "secondary"}>
+          {p.isPublished ? "Published" : "Draft"}
+        </Badge>
+      ),
+      className: "w-28",
+    },
+  ];
+}
 
 export default function AdminCoursePage({ params }: Props) {
   return (
@@ -67,35 +113,25 @@ async function Content({ params }: Props) {
         )}
       </header>
 
-      <section className="flex flex-col gap-3">
-        <h2 className="text-lg font-medium">Packs</h2>
-        {course.packs.length === 0 ? (
-          <p className="text-muted-foreground text-sm">No packs yet.</p>
-        ) : (
-          <ul className="flex flex-col gap-2">
-            {course.packs.map((p) => (
-              <li
-                key={p.id}
-                className="flex items-center justify-between gap-4 rounded-md border px-4 py-3 text-sm"
-              >
-                <div className="flex flex-col gap-0.5">
-                  <Link
-                    href={`/admin/courses/${course.slug}/${p.slug}`}
-                    className="font-medium hover:underline"
-                  >
-                    {p.title}
-                  </Link>
-                  <span className="text-muted-foreground text-xs">
-                    Position {p.position} · {p.slug}
-                  </span>
-                </div>
-                <Badge variant={p.isPublished ? "default" : "secondary"}>
-                  {p.isPublished ? "Published" : "Draft"}
-                </Badge>
-              </li>
-            ))}
-          </ul>
-        )}
+      <section className="flex flex-col gap-4">
+        <AdminToolbar
+          title="Packs"
+          headingLevel="h2"
+          action={
+            <Button asChild>
+              <Link href={`/admin/courses/${course.slug}/new`}>
+                Create pack
+              </Link>
+            </Button>
+          }
+        />
+        <DataTable
+          columns={buildPackColumns(course.slug)}
+          data={course.packs}
+          rowKey={(p) => p.id}
+          rowHref={(p) => `/admin/courses/${course.slug}/${p.slug}`}
+          empty="No packs yet."
+        />
       </section>
     </div>
   );
@@ -109,11 +145,7 @@ function Fallback() {
         <div className="bg-muted/30 h-8 w-72 animate-pulse rounded" />
         <div className="bg-muted/30 h-4 w-96 animate-pulse rounded" />
       </div>
-      <div className="flex flex-col gap-2">
-        <div className="bg-muted/30 h-5 w-16 animate-pulse rounded" />
-        <div className="bg-muted/30 h-14 animate-pulse rounded-md" />
-        <div className="bg-muted/30 h-14 animate-pulse rounded-md" />
-      </div>
+      <div className="bg-muted/30 h-48 animate-pulse rounded-md" />
     </div>
   );
 }
