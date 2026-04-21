@@ -34,8 +34,9 @@ const eslintConfig = [
   },
   {
     files: [
-      "lib/domains/*/queries/**/*.ts",
-      "lib/domains/*/actions/**/*.ts",
+      "lib/**/queries/**/*.ts",
+      "lib/**/actions/**/*.ts",
+      "lib/**/routes/**/*.ts",
       "app/**/route.ts",
     ],
     rules: {
