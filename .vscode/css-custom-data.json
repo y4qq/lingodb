@@ -1,0 +1,41 @@
+{
+  "version": 1.1,
+  "atDirectives": [
+    {
+      "name": "@tailwind",
+      "description": "Inlines Tailwind's base, components, utilities, or screens layer at this point in the stylesheet."
+    },
+    {
+      "name": "@apply",
+      "description": "Inlines existing utility classes into custom CSS rules."
+    },
+    {
+      "name": "@theme",
+      "description": "Defines design tokens (colors, spacing, radii, fonts, etc.) that Tailwind uses to generate utilities. Use `@theme inline` to keep values as-is instead of wrapping them in `var()`."
+    },
+    {
+      "name": "@custom-variant",
+      "description": "Declares a custom variant (e.g., `dark`, `hover`) that can be used to scope utilities."
+    },
+    {
+      "name": "@variant",
+      "description": "Applies a variant's selector to nested CSS rules."
+    },
+    {
+      "name": "@utility",
+      "description": "Registers a custom utility class with Tailwind."
+    },
+    {
+      "name": "@plugin",
+      "description": "Loads a Tailwind plugin."
+    },
+    {
+      "name": "@source",
+      "description": "Declares a source file or glob that Tailwind should scan for class usage."
+    },
+    {
+      "name": "@screen",
+      "description": "Applies styles at the given Tailwind breakpoint."
+    }
+  ]
+}
