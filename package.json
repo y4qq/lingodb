@@ -12,7 +12,7 @@
     "db:migrate:local": "supabase migration up",
     "db:push": "supabase db push",
     "db:studio": "drizzle-kit studio",
-    "db:types": "supabase gen types typescript --linked > lib/supabase/database.types.ts",
+    "db:types": "supabase gen types typescript --local > lib/supabase/database.types.ts",
     "db:diff": "supabase db diff --linked"
   },
   "dependencies": {
