@@ -63,16 +63,23 @@ begin
     (lang_th, 'th', 'Thai');
 
   insert into public.courses
-    (id, base_language_id, target_language_id, slug, title, description)
+    (id, base_language_id, target_language_id, slug, title, description,
+     is_published)
   values
     (course_id, lang_en, lang_th, 'thai-for-english-speakers',
-     'Thai for English Speakers', 'Seed course. Unpublished by default.');
+     'Thai for English Speakers', 'Seed course for local dev.', true);
 
-  insert into public.packs (id, course_id, slug, title, description, position)
-  values (pack_id, course_id, 'pack-1', 'Pack 1', 'Seed pack.', 1);
+  insert into public.packs
+    (id, course_id, slug, title, description, position, is_published)
+  values
+    (pack_id, course_id, 'pack-1', 'Pack 1',
+     'Seed pack for local dev.', 1, true);
 
-  insert into public.lessons (id, pack_id, slug, title, description, position)
-  values (lesson_id, pack_id, 'lesson-1', 'Lesson 1', 'Seed lesson.', 1);
+  insert into public.lessons
+    (id, pack_id, slug, title, description, position, is_published)
+  values
+    (lesson_id, pack_id, 'lesson-1', 'Lesson 1',
+     'Seed lesson for local dev.', 1, true);
 
   insert into public.lesson_audio_versions
     (id, lesson_id, label, audio_path, is_current)
