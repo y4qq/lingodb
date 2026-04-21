@@ -108,12 +108,19 @@ export const lessonAudioVersions = pgTable('lesson_audio_versions', {
   audioPath: text('audio_path').notNull(),
   audioDurationSeconds: integer('audio_duration_seconds'),
   isCurrent: boolean('is_current').notNull().default(false),
+  disabledAt: timestamp('disabled_at', { withTimezone: true }),
   ...timestamps,
 }, (t) => [
   unique('lesson_audio_versions_lesson_label_key').on(t.lessonId, t.label),
+  // Partial unique: at most one active-and-current version per lesson.
+  // Disabled rows never occupy this slot.
   uniqueIndex('lesson_audio_versions_one_current_per_lesson_idx')
     .on(t.lessonId)
-    .where(sql`${t.isCurrent}`),
+    .where(sql`${t.isCurrent} AND ${t.disabledAt} IS NULL`),
+  check(
+    'lesson_audio_versions_disabled_not_current_check',
+    sql`NOT (${t.isCurrent} AND ${t.disabledAt} IS NOT NULL)`,
+  ),
 ]).enableRLS();
 
 export const lessonTags = pgTable('lesson_tags', {

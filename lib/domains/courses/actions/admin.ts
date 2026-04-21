@@ -2,63 +2,234 @@
 
 import * as Sentry from "@sentry/nextjs";
 import { revalidatePath } from "next/cache";
+import { z } from "zod";
 import { requireAdmin } from "@/lib/auth/guards";
-import { ConflictError, NotFoundError } from "@/lib/errors";
-import { createCourse } from "../service";
-import { createCourseSchema } from "../validators";
+import {
+  ConflictError,
+  NotFoundError,
+  ValidationError,
+} from "@/lib/errors";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { AUDIO_BUCKET, contentTypeToExtension } from "../audio.shared";
+import * as audioVersions from "../audio-versions.service";
+import {
+  prepareAudioUploadSchema,
+  registerAudioVersionSchema,
+  versionIdSchema,
+} from "../audio.validation";
+import * as courses from "../course.service";
+import { createCourseSchema } from "../course.validation";
 
-// Discriminated union matching the shape `useActionState` expects on the
-// client. `fieldErrors` carries per-field Zod errors; `error` carries a
-// single summary message for non-validation failures (ConflictError,
-// unexpected bugs, etc).
+const ADMIN_COURSES_ROUTE = "/admin/courses";
+const ADMIN_LESSON_ROUTE = "/admin/courses/[slug]/[packSlug]/[lessonSlug]";
+const GENERIC_ERROR_MESSAGE = "Something went wrong. Please try again.";
+
 export type ActionResult<T> =
   | { ok: true; data: T }
   | { ok: false; error?: string; fieldErrors?: Record<string, string[]> };
 
-// Server action for creating a course. Admin-only.
-//
-// Flow:
-//   1. requireAdmin() — redirects / 404s on non-admin callers. Also sets
-//      the Sentry user context for any error reported during this request.
-//   2. Zod-validate the FormData payload. Field errors return early; the
-//      client renders them inline.
-//   3. Delegate to `createCourse` service. Domain errors
-//      (ConflictError / NotFoundError) become user-visible form errors —
-//      we deliberately DON'T report these to Sentry because they're user
-//      errors, not bugs. Unexpected errors are reported with context and
-//      surfaced as a generic message to avoid leaking details.
-//   4. Revalidate the admin course list so the new draft appears on
-//      redirect.
-export async function createCourseAction(
+export async function createCourse(
   _prev: ActionResult<{ slug: string }> | undefined,
   formData: FormData,
 ): Promise<ActionResult<{ slug: string }>> {
-  const { user } = await requireAdmin();
-  Sentry.setUser({ id: user.id, email: user.email ?? undefined });
-
   const parsed = createCourseSchema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) {
-    return {
-      ok: false,
-      fieldErrors: parsed.error.flatten().fieldErrors,
-    };
+    return { ok: false, fieldErrors: toFieldErrors(parsed.error) };
   }
 
+  return runAdminAction({
+    actionName: "createCourse",
+    execute: async () => {
+      const course = await courses.createCourse(parsed.data);
+      return { slug: course.slug };
+    },
+    onSuccess: () => revalidatePath(ADMIN_COURSES_ROUTE),
+    extra: { input: parsed.data },
+  });
+}
+
+// Mints a signed URL so the browser can PUT the file straight to Supabase
+// Storage, avoiding Next's body-size limits. Metadata is written separately
+// by `registerAudioVersion` once the upload completes.
+export async function prepareAudioUpload(
+  input: unknown,
+): Promise<ActionResult<{ path: string; token: string; signedUrl: string }>> {
+  const parsed = prepareAudioUploadSchema.safeParse(input);
+  if (!parsed.success) {
+    return { ok: false, fieldErrors: toFieldErrors(parsed.error) };
+  }
+
+  const { lessonId, filename, contentType } = parsed.data;
+  return runAdminAction({
+    actionName: "prepareAudioUpload",
+    genericMessage: "Could not start upload. Please try again.",
+    extra: { lessonId, filename, contentType },
+    execute: async () => {
+      // Extension derived from the declared content type rather than the
+      // filename — avoids trusting user input in the storage path.
+      const ext = contentTypeToExtension(contentType);
+      const path = `${lessonId}/${crypto.randomUUID()}.${ext}`;
+
+      const admin = createAdminClient();
+      const { data, error } = await admin.storage
+        .from(AUDIO_BUCKET)
+        .createSignedUploadUrl(path, { upsert: false });
+      if (error || !data) {
+        throw error ?? new Error("createSignedUploadUrl returned no data");
+      }
+
+      return { path, token: data.token, signedUrl: data.signedUrl };
+    },
+  });
+}
+
+// New versions are never pinned current on creation — an admin must
+// explicitly promote one via `setCurrentAudioVersion`.
+export async function registerAudioVersion(
+  input: unknown,
+): Promise<ActionResult<{ versionId: string }>> {
+  const parsed = registerAudioVersionSchema.safeParse(input);
+  if (!parsed.success) {
+    return { ok: false, fieldErrors: toFieldErrors(parsed.error) };
+  }
+
+  return runAdminAction({
+    actionName: "registerAudioVersion",
+    execute: async () => {
+      const row = await audioVersions.insertAudioVersion(parsed.data);
+      return { versionId: row.id };
+    },
+    onSuccess: () => revalidatePath(ADMIN_LESSON_ROUTE, "page"),
+    extra: { input: parsed.data },
+  });
+}
+
+export async function setCurrentAudioVersion(
+  input: unknown,
+): Promise<ActionResult<{ versionId: string }>> {
+  const parsed = versionIdSchema.safeParse(input);
+  if (!parsed.success) {
+    return { ok: false, fieldErrors: toFieldErrors(parsed.error) };
+  }
+
+  return runAdminAction({
+    actionName: "setCurrentAudioVersion",
+    execute: async () => {
+      const row = await audioVersions.setCurrentAudioVersion(
+        parsed.data.versionId,
+      );
+      return { versionId: row.id };
+    },
+    onSuccess: () => revalidatePath(ADMIN_LESSON_ROUTE, "page"),
+    extra: { input: parsed.data },
+  });
+}
+
+export async function disableAudioVersion(
+  input: unknown,
+): Promise<ActionResult<{ versionId: string }>> {
+  const parsed = versionIdSchema.safeParse(input);
+  if (!parsed.success) {
+    return { ok: false, fieldErrors: toFieldErrors(parsed.error) };
+  }
+
+  return runAdminAction({
+    actionName: "disableAudioVersion",
+    execute: async () => {
+      const row = await audioVersions.disableAudioVersion(
+        parsed.data.versionId,
+      );
+      return { versionId: row.id };
+    },
+    onSuccess: () => revalidatePath(ADMIN_LESSON_ROUTE, "page"),
+    extra: { input: parsed.data },
+  });
+}
+
+export async function enableAudioVersion(
+  input: unknown,
+): Promise<ActionResult<{ versionId: string }>> {
+  const parsed = versionIdSchema.safeParse(input);
+  if (!parsed.success) {
+    return { ok: false, fieldErrors: toFieldErrors(parsed.error) };
+  }
+
+  return runAdminAction({
+    actionName: "enableAudioVersion",
+    execute: async () => {
+      const row = await audioVersions.enableAudioVersion(
+        parsed.data.versionId,
+      );
+      return { versionId: row.id };
+    },
+    onSuccess: () => revalidatePath(ADMIN_LESSON_ROUTE, "page"),
+    extra: { input: parsed.data },
+  });
+}
+
+type DomainError = ConflictError | NotFoundError | ValidationError;
+
+async function runAdminAction<T>({
+  actionName,
+  execute,
+  onSuccess,
+  genericMessage = GENERIC_ERROR_MESSAGE,
+  extra = {},
+}: {
+  actionName: string;
+  execute: () => Promise<T>;
+  onSuccess?: (data: T) => void | Promise<void>;
+  genericMessage?: string;
+  extra?: Record<string, unknown>;
+}): Promise<ActionResult<T>> {
+  await guardAdmin();
+
   try {
-    const course = await createCourse(parsed.data);
-    revalidatePath("/admin/courses");
-    return { ok: true, data: { slug: course.slug } };
+    const data = await execute();
+    await onSuccess?.(data);
+    return { ok: true, data };
   } catch (err) {
-    if (err instanceof ConflictError || err instanceof NotFoundError) {
-      // Expected domain error; show inline, don't page on-call.
+    // Next's redirect()/notFound() throw tagged errors that must propagate
+    // for the framework to perform the navigation — never swallow them.
+    if (isNextControlFlowError(err)) throw err;
+
+    if (isDomainError(err)) {
       return { ok: false, error: err.message };
     }
+
     Sentry.captureException(err, {
-      extra: { action: "createCourseAction", input: parsed.data },
+      extra: { action: actionName, ...extra },
     });
-    return {
-      ok: false,
-      error: "Something went wrong. Please try again.",
-    };
+    return { ok: false, error: genericMessage };
   }
+}
+
+async function guardAdmin() {
+  const { user } = await requireAdmin();
+  Sentry.setUser({ id: user.id, email: user.email ?? undefined });
+}
+
+function isDomainError(err: unknown): err is DomainError {
+  return (
+    err instanceof ConflictError ||
+    err instanceof NotFoundError ||
+    err instanceof ValidationError
+  );
+}
+
+function isNextControlFlowError(err: unknown): boolean {
+  if (err === null || typeof err !== "object") return false;
+  const digest = (err as { digest?: unknown }).digest;
+  return (
+    typeof digest === "string" &&
+    (digest.startsWith("NEXT_REDIRECT") || digest === "NEXT_NOT_FOUND")
+  );
+}
+
+function toFieldErrors(error: z.ZodError): Record<string, string[]> {
+  return Object.fromEntries(
+    Object.entries(error.flatten().fieldErrors).filter(
+      (entry): entry is [string, string[]] => entry[1] !== undefined,
+    ),
+  );
 }

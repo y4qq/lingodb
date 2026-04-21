@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import Link from "next/link";
-import { listAllCourses } from "@/lib/domains/courses/queries/admin";
+import { listAdminCourses } from "@/lib/domains/courses/queries/admin";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
@@ -26,7 +26,7 @@ export default function AdminCoursesPage() {
 }
 
 async function AdminCoursesList() {
-  const rows = await listAllCourses();
+  const rows = await listAdminCourses();
 
   if (rows.length === 0) {
     return (
@@ -45,7 +45,7 @@ async function AdminCoursesList() {
         >
           <div className="flex flex-col gap-0.5">
             <Link
-              href={`/courses/${c.slug}`}
+              href={`/admin/courses/${c.slug}`}
               className="font-medium hover:underline"
             >
               {c.title}

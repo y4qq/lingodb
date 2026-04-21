@@ -1,9 +1,15 @@
 import "server-only";
-import { and, asc, eq } from "drizzle-orm";
+import { and, asc, desc, eq } from "drizzle-orm";
 import { db } from "@/lib/db";
-import { courses, languages, lessons, packs } from "@/supabase/schema";
 import { ConflictError, NotFoundError } from "@/lib/errors";
-import type { CreateCourseInput } from "./validators";
+import {
+  courses,
+  languages,
+  lessonAudioVersions,
+  lessons,
+  packs,
+} from "@/supabase/schema";
+import type { CreateCourseInput } from "./course.validation";
 
 // This file is PRIVATE to the courses domain. Pages and components MUST NOT
 // import from here — consume lib/domains/courses/queries/* (reads) or
@@ -15,10 +21,10 @@ import type { CreateCourseInput } from "./validators";
 // (queries/, actions/, or a route.ts controller) owns the auth+validation
 // boundary.
 
-// -----------------------------------------------------------------------------
+// ---------------------------------------------------------------------------
 // Reads (public-visible subset)
-// -----------------------------------------------------------------------------
-// Every "public" read filters `isPublished = true` at every ancestor level.
+// ---------------------------------------------------------------------------
+// Every public read filters `isPublished = true` at every ancestor level.
 // Drizzle connects as `postgres` and bypasses RLS, so visibility is enforced
 // here — these rules match what anon/authenticated callers would see if we
 // ever expose tables via the public PostgREST API.
@@ -66,12 +72,12 @@ export async function getPublishedPackBySlugs(
   return { course, pack };
 }
 
-// -----------------------------------------------------------------------------
-// Admin reads (includes drafts)
-// -----------------------------------------------------------------------------
-// Returns drafts. The admin guard lives in queries/admin.ts.
+// ---------------------------------------------------------------------------
+// Reads (admin-visible, includes drafts)
+// ---------------------------------------------------------------------------
+// The admin guard lives in queries/admin.ts.
 
-export async function listAllCourses() {
+export async function listAdminCourses() {
   return db.query.courses.findMany({
     orderBy: asc(courses.title),
     with: {
@@ -81,10 +87,74 @@ export async function listAllCourses() {
   });
 }
 
-// -----------------------------------------------------------------------------
-// Writes
-// -----------------------------------------------------------------------------
+export async function getAdminCourseBySlug(slug: string) {
+  const course = await db.query.courses.findFirst({
+    where: eq(courses.slug, slug),
+    with: {
+      baseLanguage: true,
+      targetLanguage: true,
+      packs: {
+        orderBy: asc(packs.position),
+      },
+    },
+  });
+  return course ?? null;
+}
 
+export async function getAdminPackBySlugs(
+  courseSlug: string,
+  packSlug: string,
+) {
+  const course = await db.query.courses.findFirst({
+    where: eq(courses.slug, courseSlug),
+    with: {
+      packs: {
+        where: eq(packs.slug, packSlug),
+        with: {
+          lessons: {
+            orderBy: asc(lessons.position),
+          },
+        },
+      },
+    },
+  });
+  const pack = course?.packs[0];
+  if (!course || !pack) return null;
+  return { course, pack };
+}
+
+export async function getAdminLessonBySlugs(
+  courseSlug: string,
+  packSlug: string,
+  lessonSlug: string,
+) {
+  const course = await db.query.courses.findFirst({
+    where: eq(courses.slug, courseSlug),
+    with: {
+      packs: {
+        where: eq(packs.slug, packSlug),
+        with: {
+          lessons: {
+            where: eq(lessons.slug, lessonSlug),
+            with: {
+              audioVersions: {
+                orderBy: desc(lessonAudioVersions.createdAt),
+              },
+            },
+          },
+        },
+      },
+    },
+  });
+  const pack = course?.packs[0];
+  const lesson = pack?.lessons[0];
+  if (!course || !pack || !lesson) return null;
+  return { course, pack, lesson };
+}
+
+// ---------------------------------------------------------------------------
+// Writes
+// ---------------------------------------------------------------------------
 // Creates a new course. Starts in draft (is_published = false). The admin
 // guard lives in actions/admin.ts.
 //
@@ -103,10 +173,10 @@ export async function createCourse(input: CreateCourseInput) {
     }),
   ]);
   if (!base) {
-    throw new NotFoundError(`Base language not found`);
+    throw new NotFoundError("Base language not found");
   }
   if (!target) {
-    throw new NotFoundError(`Target language not found`);
+    throw new NotFoundError("Target language not found");
   }
 
   const existing = await db.query.courses.findFirst({

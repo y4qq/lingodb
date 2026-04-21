@@ -1,0 +1,4 @@
+DROP INDEX "lesson_audio_versions_one_current_per_lesson_idx";--> statement-breakpoint
+ALTER TABLE "lesson_audio_versions" ADD COLUMN "disabled_at" timestamp with time zone;--> statement-breakpoint
+CREATE UNIQUE INDEX "lesson_audio_versions_one_current_per_lesson_idx" ON "lesson_audio_versions" USING btree ("lesson_id") WHERE "lesson_audio_versions"."is_current" AND "lesson_audio_versions"."disabled_at" IS NULL;--> statement-breakpoint
+ALTER TABLE "lesson_audio_versions" ADD CONSTRAINT "lesson_audio_versions_disabled_not_current_check" CHECK (NOT ("lesson_audio_versions"."is_current" AND "lesson_audio_versions"."disabled_at" IS NOT NULL));

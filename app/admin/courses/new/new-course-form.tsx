@@ -2,7 +2,7 @@
 
 import { useActionState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { createCourseAction } from "@/lib/domains/courses/actions/admin";
+import { createCourse } from "@/lib/domains/courses/actions/admin";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
@@ -24,7 +24,7 @@ type Language = {
 
 export function NewCourseForm({ languages }: { languages: Language[] }) {
   const [state, action, isPending] = useActionState(
-    createCourseAction,
+    createCourse,
     undefined,
   );
   const router = useRouter();

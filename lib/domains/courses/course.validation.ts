@@ -17,7 +17,7 @@ export const createCourseSchema = z
       .transform((v) => (v && v.length > 0 ? v : undefined)),
     isFree: z.coerce.boolean().default(false),
   })
-  .refine((d) => d.baseLanguageId !== d.targetLanguageId, {
+  .refine((data) => data.baseLanguageId !== data.targetLanguageId, {
     error: "Base and target languages must differ",
     path: ["targetLanguageId"],
   });
