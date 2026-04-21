@@ -18,7 +18,8 @@ import {
   versionIdSchema,
 } from "../audio.validation";
 import * as courses from "../course.service";
-import { createCourseSchema } from "../course.validation";
+import { createCourseSchema, updateCourseSchema } from "../course.validation";
+import { updatePackSchema } from "../pack.validation";
 
 const ADMIN_COURSES_ROUTE = "/admin/courses";
 const ADMIN_LESSON_ROUTE = "/admin/courses/[slug]/[packSlug]/[lessonSlug]";
@@ -44,6 +45,53 @@ export async function createCourse(
       return { slug: course.slug };
     },
     onSuccess: () => revalidatePath(ADMIN_COURSES_ROUTE),
+    extra: { input: parsed.data },
+  });
+}
+
+export async function updateCourse(
+  _prev: ActionResult<{ slug: string }> | undefined,
+  formData: FormData,
+): Promise<ActionResult<{ slug: string }>> {
+  const parsed = updateCourseSchema.safeParse(Object.fromEntries(formData));
+  if (!parsed.success) {
+    return { ok: false, fieldErrors: toFieldErrors(parsed.error) };
+  }
+
+  return runAdminAction({
+    actionName: "updateCourse",
+    execute: async () => {
+      const { id, ...updates } = parsed.data;
+      const course = await courses.updateCourse(id, updates);
+      return { slug: course.slug };
+    },
+    onSuccess: (data) => {
+      revalidatePath(ADMIN_COURSES_ROUTE);
+      revalidatePath(`/admin/courses/${data.slug}`);
+    },
+    extra: { input: parsed.data },
+  });
+}
+
+export async function updatePack(
+  _prev: ActionResult<{ id: string }> | undefined,
+  formData: FormData,
+): Promise<ActionResult<{ id: string }>> {
+  const parsed = updatePackSchema.safeParse(Object.fromEntries(formData));
+  if (!parsed.success) {
+    return { ok: false, fieldErrors: toFieldErrors(parsed.error) };
+  }
+
+  return runAdminAction({
+    actionName: "updatePack",
+    execute: async () => {
+      const { id, ...updates } = parsed.data;
+      const pack = await courses.updatePack(id, updates);
+      return { id: pack.id };
+    },
+    // Broad revalidate: pack paths depend on the parent course slug, which we
+    // don't have without another lookup. All admin pages re-fetch on next nav.
+    onSuccess: () => revalidatePath("/admin", "layout"),
     extra: { input: parsed.data },
   });
 }

@@ -23,3 +23,17 @@ export const createCourseSchema = z
   });
 
 export type CreateCourseInput = z.infer<typeof createCourseSchema>;
+
+export const updateCourseSchema = z.object({
+  id: z.uuid(),
+  title: z.string().min(1, "Title is required").max(200),
+  description: z
+    .string()
+    .max(2000, "Description must be 2000 characters or fewer")
+    .optional()
+    .transform((v) => (v && v.length > 0 ? v : undefined)),
+  isPublished: z.coerce.boolean().default(false),
+  isFree: z.coerce.boolean().default(false),
+});
+
+export type UpdateCourseInput = z.infer<typeof updateCourseSchema>;

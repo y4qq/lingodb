@@ -5,6 +5,7 @@ import { getAdminPackBySlugs } from "@/lib/domains/courses/queries/admin";
 import { AdminPageHeader } from "@/components/admin/admin-page-header";
 import { AdminPageHeaderSkeleton } from "@/components/admin/admin-page-header-skeleton";
 import { DataTable, type Column } from "@/components/admin/data-table";
+import { PackEditDialog } from "@/components/admin/pack-edit-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -76,17 +77,29 @@ async function Content({ params }: Props) {
         description={
           pack.description ?? `Pack ${pack.position} · ${pack.slug}`
         }
+        action={
+          <div className="flex items-center gap-2">
+            <Button asChild>
+              <Link href={`/admin/courses/${course.slug}/${pack.slug}/new`}>
+                Create lesson
+              </Link>
+            </Button>
+            <PackEditDialog
+              pack={{
+                id: pack.id,
+                title: pack.title,
+                description: pack.description,
+                position: pack.position,
+                isPublished: pack.isPublished,
+                isFree: pack.isFree,
+              }}
+            />
+          </div>
+        }
       />
 
       <section className="flex flex-col gap-4">
-        <div className="flex items-center justify-between gap-4">
-          <h2 className="text-lg font-medium">Lessons</h2>
-          <Button asChild>
-            <Link href={`/admin/courses/${course.slug}/${pack.slug}/new`}>
-              Create lesson
-            </Link>
-          </Button>
-        </div>
+        <h2 className="text-lg font-medium">Lessons</h2>
         <DataTable
           columns={lessonColumns}
           data={pack.lessons}

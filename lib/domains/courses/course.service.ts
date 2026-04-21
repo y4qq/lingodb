@@ -9,7 +9,8 @@ import {
   lessons,
   packs,
 } from "@/supabase/schema";
-import type { CreateCourseInput } from "./course.validation";
+import type { CreateCourseInput, UpdateCourseInput } from "./course.validation";
+import type { UpdatePackInput } from "./pack.validation";
 
 // This file is PRIVATE to the courses domain. Pages and components MUST NOT
 // import from here — consume lib/domains/courses/queries/* (reads) or
@@ -253,4 +254,45 @@ export async function createCourse(input: CreateCourseInput) {
     .returning();
 
   return course;
+}
+
+export async function updateCourse(
+  id: string,
+  input: Omit<UpdateCourseInput, "id">,
+) {
+  const [updated] = await db
+    .update(courses)
+    .set({
+      title: input.title,
+      description: input.description ?? null,
+      isPublished: input.isPublished,
+      isFree: input.isFree,
+    })
+    .where(eq(courses.id, id))
+    .returning();
+  if (!updated) {
+    throw new NotFoundError(`Course ${id} not found`);
+  }
+  return updated;
+}
+
+export async function updatePack(
+  id: string,
+  input: Omit<UpdatePackInput, "id">,
+) {
+  const [updated] = await db
+    .update(packs)
+    .set({
+      title: input.title,
+      description: input.description ?? null,
+      position: input.position,
+      isPublished: input.isPublished,
+      isFree: input.isFree,
+    })
+    .where(eq(packs.id, id))
+    .returning();
+  if (!updated) {
+    throw new NotFoundError(`Pack ${id} not found`);
+  }
+  return updated;
 }

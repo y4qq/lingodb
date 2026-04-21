@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { getAdminCourseBySlug } from "@/lib/domains/courses/queries/admin";
 import { AdminPageHeader } from "@/components/admin/admin-page-header";
 import { AdminPageHeaderSkeleton } from "@/components/admin/admin-page-header-skeleton";
+import { CourseEditDialog } from "@/components/admin/course-edit-dialog";
 import { DataTable, type Column } from "@/components/admin/data-table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -74,15 +75,28 @@ async function Content({ params }: Props) {
           course.description ??
           `${course.baseLanguage.name} → ${course.targetLanguage.name} · ${course.slug}`
         }
+        action={
+          <div className="flex items-center gap-2">
+            <Button asChild>
+              <Link href={`/admin/courses/${course.slug}/new`}>
+                Create pack
+              </Link>
+            </Button>
+            <CourseEditDialog
+              course={{
+                id: course.id,
+                title: course.title,
+                description: course.description,
+                isPublished: course.isPublished,
+                isFree: course.isFree,
+              }}
+            />
+          </div>
+        }
       />
 
       <section className="flex flex-col gap-4">
-        <div className="flex items-center justify-between gap-4">
-          <h2 className="text-lg font-medium">Packs</h2>
-          <Button asChild>
-            <Link href={`/admin/courses/${course.slug}/new`}>Create pack</Link>
-          </Button>
-        </div>
+        <h2 className="text-lg font-medium">Packs</h2>
         <DataTable
           columns={packColumns}
           data={course.packs}
