@@ -1,5 +1,5 @@
 import "server-only";
-import { and, asc, desc, eq } from "drizzle-orm";
+import { and, asc, count, desc, eq } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { ConflictError, NotFoundError } from "@/lib/errors";
 import {
@@ -85,6 +85,59 @@ export async function listAdminCourses() {
       targetLanguage: true,
     },
   });
+}
+
+export async function listRecentAdminCourses(limit = 5) {
+  return db.query.courses.findMany({
+    orderBy: desc(courses.updatedAt),
+    limit,
+    with: {
+      baseLanguage: true,
+      targetLanguage: true,
+    },
+  });
+}
+
+export type AdminCourseStats = {
+  courseCount: number;
+  publishedCourseCount: number;
+  packCount: number;
+  publishedPackCount: number;
+  lessonCount: number;
+  publishedLessonCount: number;
+};
+
+export async function getAdminCourseStats(): Promise<AdminCourseStats> {
+  const [
+    courseTotal,
+    coursePublished,
+    packTotal,
+    packPublished,
+    lessonTotal,
+    lessonPublished,
+  ] = await Promise.all([
+    db.select({ n: count() }).from(courses),
+    db
+      .select({ n: count() })
+      .from(courses)
+      .where(eq(courses.isPublished, true)),
+    db.select({ n: count() }).from(packs),
+    db.select({ n: count() }).from(packs).where(eq(packs.isPublished, true)),
+    db.select({ n: count() }).from(lessons),
+    db
+      .select({ n: count() })
+      .from(lessons)
+      .where(eq(lessons.isPublished, true)),
+  ]);
+
+  return {
+    courseCount: courseTotal[0].n,
+    publishedCourseCount: coursePublished[0].n,
+    packCount: packTotal[0].n,
+    publishedPackCount: packPublished[0].n,
+    lessonCount: lessonTotal[0].n,
+    publishedLessonCount: lessonPublished[0].n,
+  };
 }
 
 export async function getAdminCourseBySlug(slug: string) {

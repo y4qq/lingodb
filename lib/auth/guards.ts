@@ -28,3 +28,15 @@ export async function requireAdmin() {
   }
   return { user, profile };
 }
+
+export async function getProfileIfAdmin() {
+  const supabase = await createClient();
+  const { data } = await supabase.auth.getUser();
+  if (!data.user) return null;
+  const profile = await db.query.users.findFirst({
+    where: eq(users.id, data.user.id),
+    columns: { id: true, email: true, displayName: true, role: true },
+  });
+  if (!profile || profile.role !== "admin") return null;
+  return profile;
+}

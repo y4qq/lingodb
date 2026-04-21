@@ -1,3 +1,4 @@
+import { AdminShortcut } from "@/components/auth/admin-shortcut";
 import { AuthButton } from "@/components/auth/auth-button";
 import { ThemeSwitcher } from "@/components/theme-switcher";
 import Link from "next/link";
@@ -15,9 +16,14 @@ export default function CoursesLayout({
           <Link href="/courses" className="font-semibold">
             Fluent Fast
           </Link>
-          <Suspense>
-            <AuthButton />
-          </Suspense>
+          <div className="flex items-center gap-3">
+            <Suspense>
+              <AdminShortcut />
+            </Suspense>
+            <Suspense>
+              <AuthButton />
+            </Suspense>
+          </div>
         </div>
       </header>
       <main className="mx-auto w-full max-w-5xl flex-1 px-5 py-10">

@@ -2,63 +2,46 @@ import { Suspense } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getAdminCourseBySlug } from "@/lib/domains/courses/queries/admin";
-import { AdminToolbar } from "@/components/admin/admin-toolbar";
+import { AdminPageHeader } from "@/components/admin/admin-page-header";
+import { AdminPageHeaderSkeleton } from "@/components/admin/admin-page-header-skeleton";
 import { DataTable, type Column } from "@/components/admin/data-table";
 import { Badge } from "@/components/ui/badge";
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 
 type Props = { params: Promise<{ slug: string }> };
 
 type Course = NonNullable<Awaited<ReturnType<typeof getAdminCourseBySlug>>>;
 type PackRow = Course["packs"][number];
 
-function buildPackColumns(courseSlug: string): Column<PackRow>[] {
-  return [
-    {
-      header: "#",
-      cell: (p) => (
-        <span className="text-muted-foreground tabular-nums">{p.position}</span>
-      ),
-      className: "w-12",
-    },
-    {
-      header: "Title",
-      cell: (p) => (
-        <Link
-          href={`/admin/courses/${courseSlug}/${p.slug}`}
-          className="font-medium hover:underline"
-        >
-          {p.title}
-        </Link>
-      ),
-    },
-    {
-      header: "Slug",
-      cell: (p) => (
-        <span className="text-muted-foreground font-mono text-xs">
-          {p.slug}
-        </span>
-      ),
-    },
-    {
-      header: "Status",
-      cell: (p) => (
-        <Badge variant={p.isPublished ? "default" : "secondary"}>
-          {p.isPublished ? "Published" : "Draft"}
-        </Badge>
-      ),
-      className: "w-28",
-    },
-  ];
-}
+const packColumns: Column<PackRow>[] = [
+  {
+    header: "#",
+    cell: (p) => (
+      <span className="text-muted-foreground tabular-nums">{p.position}</span>
+    ),
+    className: "w-12",
+  },
+  {
+    header: "Title",
+    cell: (p) => <span className="font-medium">{p.title}</span>,
+  },
+  {
+    header: "Slug",
+    cell: (p) => (
+      <span className="text-muted-foreground font-mono text-xs">{p.slug}</span>
+    ),
+  },
+  {
+    header: "Status",
+    cell: (p) => (
+      <Badge variant={p.isPublished ? "default" : "secondary"}>
+        {p.isPublished ? "Published" : "Draft"}
+      </Badge>
+    ),
+    className: "w-28",
+  },
+];
 
 export default function AdminCoursePage({ params }: Props) {
   return (
@@ -74,78 +57,49 @@ async function Content({ params }: Props) {
   if (!course) notFound();
 
   return (
-    <div className="flex flex-col gap-8">
-      <Breadcrumb>
-        <BreadcrumbList>
-          <BreadcrumbItem>
-            <BreadcrumbLink asChild>
-              <Link href="/admin">Admin</Link>
-            </BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator />
-          <BreadcrumbItem>
-            <BreadcrumbLink asChild>
-              <Link href="/admin/courses">Courses</Link>
-            </BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator />
-          <BreadcrumbItem>
-            <BreadcrumbPage>{course.title}</BreadcrumbPage>
-          </BreadcrumbItem>
-        </BreadcrumbList>
-      </Breadcrumb>
-
-      <header className="flex flex-col gap-2">
-        <div className="flex items-center gap-3">
-          <h1 className="text-2xl font-semibold tracking-tight">
-            {course.title}
-          </h1>
+    <>
+      <AdminPageHeader
+        breadcrumbs={[
+          { href: "/admin", label: "Dashboard" },
+          { href: "/admin/courses", label: "Courses" },
+          { label: course.title },
+        ]}
+        title={course.title}
+        meta={
           <Badge variant={course.isPublished ? "default" : "secondary"}>
             {course.isPublished ? "Published" : "Draft"}
           </Badge>
-        </div>
-        <p className="text-muted-foreground text-sm">
-          {course.baseLanguage.name} → {course.targetLanguage.name} ·{" "}
-          {course.slug}
-        </p>
-        {course.description && (
-          <p className="text-muted-foreground">{course.description}</p>
-        )}
-      </header>
+        }
+        description={
+          course.description ??
+          `${course.baseLanguage.name} → ${course.targetLanguage.name} · ${course.slug}`
+        }
+      />
 
       <section className="flex flex-col gap-4">
-        <AdminToolbar
-          title="Packs"
-          headingLevel="h2"
-          action={
-            <Button asChild>
-              <Link href={`/admin/courses/${course.slug}/new`}>
-                Create pack
-              </Link>
-            </Button>
-          }
-        />
+        <div className="flex items-center justify-between gap-4">
+          <h2 className="text-lg font-medium">Packs</h2>
+          <Button asChild>
+            <Link href={`/admin/courses/${course.slug}/new`}>Create pack</Link>
+          </Button>
+        </div>
         <DataTable
-          columns={buildPackColumns(course.slug)}
+          columns={packColumns}
           data={course.packs}
           rowKey={(p) => p.id}
           rowHref={(p) => `/admin/courses/${course.slug}/${p.slug}`}
           empty="No packs yet."
         />
       </section>
-    </div>
+    </>
   );
 }
 
 function Fallback() {
   return (
-    <div className="flex flex-col gap-8">
-      <div className="bg-muted/30 h-4 w-48 animate-pulse rounded" />
-      <div className="flex flex-col gap-2">
-        <div className="bg-muted/30 h-8 w-72 animate-pulse rounded" />
-        <div className="bg-muted/30 h-4 w-96 animate-pulse rounded" />
-      </div>
-      <div className="bg-muted/30 h-48 animate-pulse rounded-md" />
-    </div>
+    <>
+      <AdminPageHeaderSkeleton />
+      <Skeleton className="h-64 w-full" />
+    </>
   );
 }

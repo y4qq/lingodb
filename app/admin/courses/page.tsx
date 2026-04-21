@@ -1,24 +1,18 @@
 import { Suspense } from "react";
 import Link from "next/link";
 import { listAdminCourses } from "@/lib/domains/courses/queries/admin";
-import { AdminToolbar } from "@/components/admin/admin-toolbar";
+import { AdminPageHeader } from "@/components/admin/admin-page-header";
 import { DataTable, type Column } from "@/components/admin/data-table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 
 type CourseRow = Awaited<ReturnType<typeof listAdminCourses>>[number];
 
 const columns: Column<CourseRow>[] = [
   {
     header: "Title",
-    cell: (c) => (
-      <Link
-        href={`/admin/courses/${c.slug}`}
-        className="font-medium hover:underline"
-      >
-        {c.title}
-      </Link>
-    ),
+    cell: (c) => <span className="font-medium">{c.title}</span>,
   },
   {
     header: "Languages",
@@ -47,8 +41,12 @@ const columns: Column<CourseRow>[] = [
 
 export default function AdminCoursesPage() {
   return (
-    <div className="flex flex-col gap-6">
-      <AdminToolbar
+    <>
+      <AdminPageHeader
+        breadcrumbs={[
+          { href: "/admin", label: "Dashboard" },
+          { label: "Courses" },
+        ]}
         title="Courses"
         description="All courses, published and draft."
         action={
@@ -57,10 +55,10 @@ export default function AdminCoursesPage() {
           </Button>
         }
       />
-      <Suspense fallback={<ListFallback />}>
+      <Suspense fallback={<Skeleton className="h-64 w-full" />}>
         <CoursesList />
       </Suspense>
-    </div>
+    </>
   );
 }
 
@@ -75,8 +73,4 @@ async function CoursesList() {
       empty="No courses yet. Create one to get started."
     />
   );
-}
-
-function ListFallback() {
-  return <div className="bg-muted/30 h-48 animate-pulse rounded-md" />;
 }

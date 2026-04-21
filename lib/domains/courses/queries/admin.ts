@@ -5,9 +5,11 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { AUDIO_BUCKET } from "../audio.shared";
 import {
   getAdminCourseBySlug as getAdminCourseBySlugRow,
+  getAdminCourseStats as getAdminCourseStatsRow,
   getAdminLessonBySlugs as getAdminLessonBySlugsRow,
   getAdminPackBySlugs as getAdminPackBySlugsRow,
   listAdminCourses as listAdminCoursesRows,
+  listRecentAdminCourses as listRecentAdminCoursesRows,
 } from "../course.service";
 
 // Admin-scoped course reads. Every export guards with `requireAdmin()` before
@@ -19,6 +21,16 @@ const SIGNED_URL_TTL_SECONDS = 60 * 10; // 10 minutes
 export async function listAdminCourses() {
   await requireAdmin();
   return listAdminCoursesRows();
+}
+
+export async function listRecentAdminCourses(limit = 5) {
+  await requireAdmin();
+  return listRecentAdminCoursesRows(limit);
+}
+
+export async function getAdminCourseStats() {
+  await requireAdmin();
+  return getAdminCourseStatsRow();
 }
 
 export async function getAdminCourseBySlug(slug: string) {
