@@ -14,24 +14,6 @@ import type { CreateCourseInput, UpdateCourseInput } from "./course.validation";
 import type { CreateLessonInput } from "./lesson.validation";
 import type { CreatePackInput, UpdatePackInput } from "./pack.validation";
 
-// This file is PRIVATE to the courses domain. Pages and components MUST NOT
-// import from here — consume lib/domains/courses/queries/* (reads) or
-// lib/domains/courses/actions/* (mutations). The ESLint rule enforces this;
-// see eslint.config.mjs.
-//
-// Services do no auth and no Zod parsing. They take already-validated,
-// already-authorized inputs and perform data access. The wrapper layer
-// (queries/, actions/, or a route.ts controller) owns the auth+validation
-// boundary.
-
-// ---------------------------------------------------------------------------
-// Reads (public-visible subset)
-// ---------------------------------------------------------------------------
-// Every public read filters `isPublished = true` at every ancestor level.
-// Drizzle connects as `postgres` and bypasses RLS, so visibility is enforced
-// here — these rules match what anon/authenticated callers would see if we
-// ever expose tables via the public PostgREST API.
-
 export async function listPublishedCourses() {
   return db.query.courses.findMany({
     where: eq(courses.isPublished, true),
@@ -75,11 +57,6 @@ export async function getPublishedPackBySlugs(
   return { course, pack };
 }
 
-// ---------------------------------------------------------------------------
-// Reads (admin-visible, includes drafts)
-// ---------------------------------------------------------------------------
-// The admin guard lives in queries/admin.ts.
-
 export async function listAdminCourses() {
   return db.query.courses.findMany({
     orderBy: asc(courses.title),
@@ -102,8 +79,6 @@ export async function listAdminCoursesWithEnrollments() {
   return rows.map((r) => ({ ...r, enrollmentCount: countMap.get(r.id) ?? 0 }));
 }
 
-// Courses the user can still add to their library: published, and not already
-// enrolled in.
 export async function listAvailableCoursesForUser(userId: string) {
   const enrolledCourseIds = db
     .select({ id: userCourses.courseId })
@@ -123,8 +98,6 @@ export async function listAvailableCoursesForUser(userId: string) {
   });
 }
 
-// Gate into a course: returns the course only if the user is enrolled. Draft
-// courses a user has already joined remain accessible.
 export async function getCourseForUser(userId: string, slug: string) {
   const course = await db.query.courses.findFirst({
     where: eq(courses.slug, slug),
@@ -301,15 +274,6 @@ export async function getAdminLessonBySlugs(
   return { course, pack, lesson };
 }
 
-// ---------------------------------------------------------------------------
-// Writes
-// ---------------------------------------------------------------------------
-// Creates a new course. Starts in draft (is_published = false). The admin
-// guard lives in actions/admin.ts.
-//
-// Throws:
-//   - NotFoundError if either language id doesn't resolve.
-//   - ConflictError if another course already uses the slug.
 export async function createCourse(input: CreateCourseInput) {
   const [base, target] = await Promise.all([
     db.query.languages.findFirst({

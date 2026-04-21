@@ -42,7 +42,6 @@ export function AudioPlayerProvider({ children }: { children: ReactNode }) {
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
 
-  // Whenever the track changes, load and start playing from the top.
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio || !track) return;
@@ -58,7 +57,6 @@ export function AudioPlayerProvider({ children }: { children: ReactNode }) {
   const play = useCallback((next: Track) => {
     setTrack((prev) => {
       if (prev?.id === next.id) {
-        // Same track → resume.
         void audioRef.current?.play();
         return prev;
       }

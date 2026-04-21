@@ -6,9 +6,6 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { ensureProfile } from "@/lib/domains/users/service";
 
-// Handler for GET /auth/confirm — the URL users land on after clicking the
-// confirmation link in a signup / invite / recovery / email-change email.
-
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const token_hash = searchParams.get("token_hash");

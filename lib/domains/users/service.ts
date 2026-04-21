@@ -98,8 +98,6 @@ export type LandingDecision =
   | { kind: "adoptFirst"; courseId: string; slug: string }
   | { kind: "welcome" };
 
-// Pure decision — no mutation. The caller is responsible for any active-course
-// flip so that mutations stay in the actions layer.
 export async function resolveLandingForUser(
   userId: string,
 ): Promise<LandingDecision> {

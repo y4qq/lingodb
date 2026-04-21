@@ -61,8 +61,6 @@ export async function setActiveCourse(
   });
 }
 
-// Non-form action for server components. The requireUser guard + service-side
-// enrollment check make this safe to expose as an RPC.
 export async function setActiveCourseForMe(courseId: string): Promise<void> {
   const user = await requireUser();
   await usersService.setActiveCourse(user.id, courseId);

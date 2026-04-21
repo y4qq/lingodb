@@ -4,10 +4,10 @@ export const AUDIO_BUCKET = "lesson-audio";
 // supabase/config.toml's `storage.buckets.lesson-audio.allowed_mime_types`.
 export const ALLOWED_AUDIO_CONTENT_TYPES = [
   "audio/mpeg",
-  "audio/mp4",
-  "audio/wav",
-  "audio/ogg",
-  "audio/webm",
+  // "audio/mp4",
+  // "audio/wav",
+  // "audio/ogg",
+  // "audio/webm",
 ] as const;
 
 export type AllowedAudioContentType =
@@ -15,10 +15,10 @@ export type AllowedAudioContentType =
 
 const AUDIO_CONTENT_TYPE_EXTENSIONS: Record<AllowedAudioContentType, string> = {
   "audio/mpeg": "mp3",
-  "audio/mp4": "m4a",
-  "audio/wav": "wav",
-  "audio/ogg": "ogg",
-  "audio/webm": "webm",
+  // "audio/mp4": "m4a",
+  // "audio/wav": "wav",
+  // "audio/ogg": "ogg",
+  // "audio/webm": "webm",
 };
 
 export function contentTypeToExtension(

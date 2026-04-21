@@ -1,30 +1,10 @@
 import "server-only";
-import { and, eq, ne, sql } from "drizzle-orm";
+import { and, eq, ne } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { ConflictError, NotFoundError, ValidationError } from "@/lib/errors";
 import { lessonAudioVersions, lessons } from "@/supabase/schema";
 import type { RegisterAudioVersionInput } from "./audio.validation";
 
-// This file is PRIVATE to the courses domain. Pages and components MUST NOT
-// import from here — consume lib/domains/courses/queries/* (reads) or
-// lib/domains/courses/actions/* (mutations). The ESLint rule enforces this;
-// see eslint.config.mjs.
-//
-// Services do no auth and no Zod parsing. They take already-validated,
-// already-authorized inputs and perform data access. The wrapper layer
-// (queries/, actions/, or a route.ts controller) owns the auth+validation
-// boundary.
-
-// All writes here assume the caller has already:
-//   1. Verified admin access (via requireAdmin in actions/admin.ts).
-//   2. Uploaded the file to the `lesson-audio` Storage bucket at audioPath.
-
-// Inserts an audio version row for an already-uploaded file. Never pinned
-// current on creation — the admin must explicitly promote it.
-//
-// Throws:
-//   - NotFoundError if the lesson doesn't exist.
-//   - ConflictError if the (lesson, label) pair already exists.
 export async function insertAudioVersion(input: RegisterAudioVersionInput) {
   const lesson = await db.query.lessons.findFirst({
     where: eq(lessons.id, input.lessonId),
@@ -60,16 +40,6 @@ export async function insertAudioVersion(input: RegisterAudioVersionInput) {
   return row;
 }
 
-// Pins a version as current for its lesson. Clears `is_current` on any other
-// versions of the same lesson in the same transaction so the partial unique
-// index never trips.
-//
-// Throws:
-//   - NotFoundError if the version doesn't exist.
-//   - ValidationError if the target version is disabled.
-//   - ConflictError if a concurrent writer pinned a sibling first (the
-//     partial unique index catches the race; we translate the SQLSTATE so
-//     admins get a clean message instead of "Something went wrong").
 export async function setCurrentAudioVersion(versionId: string) {
   try {
     return await db.transaction(async (tx) => {
@@ -114,10 +84,6 @@ export async function setCurrentAudioVersion(versionId: string) {
   }
 }
 
-// Soft-disables a version. If it was current, also clears `is_current` so the
-// lesson ends up with no pinned version (admin must re-pin another).
-//
-// Throws NotFoundError if the version doesn't exist.
 export async function disableAudioVersion(versionId: string) {
   return db.transaction(async (tx) => {
     const target = await tx.query.lessonAudioVersions.findFirst({
@@ -132,7 +98,7 @@ export async function disableAudioVersion(versionId: string) {
     const [row] = await tx
       .update(lessonAudioVersions)
       .set({
-        disabledAt: sql`now()`,
+        disabledAt: new Date(),
         isCurrent: false,
       })
       .where(eq(lessonAudioVersions.id, versionId))
@@ -142,10 +108,6 @@ export async function disableAudioVersion(versionId: string) {
   });
 }
 
-// Re-enables a previously disabled version. Does NOT auto-pin as current —
-// admin must explicitly promote it.
-//
-// Throws NotFoundError if the version doesn't exist.
 export async function enableAudioVersion(versionId: string) {
   const existing = await db.query.lessonAudioVersions.findFirst({
     where: eq(lessonAudioVersions.id, versionId),

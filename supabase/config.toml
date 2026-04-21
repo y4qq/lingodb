@@ -119,7 +119,7 @@ file_size_limit = "50MiB"
 [storage.buckets.lesson-audio]
 public = false
 file_size_limit = "50MiB"
-allowed_mime_types = ["audio/mpeg", "audio/mp4", "audio/wav", "audio/ogg", "audio/webm"]
+allowed_mime_types = ["audio/mpeg"]
 
 [auth]
 enabled = true

@@ -154,8 +154,6 @@ export async function prepareAudioUpload(
     genericMessage: "Could not start upload. Please try again.",
     extra: { lessonId, filename, contentType },
     execute: async () => {
-      // Extension derived from the declared content type rather than the
-      // filename — avoids trusting user input in the storage path.
       const ext = contentTypeToExtension(contentType);
       const path = `${lessonId}/${crypto.randomUUID()}.${ext}`;
 
@@ -172,8 +170,6 @@ export async function prepareAudioUpload(
   });
 }
 
-// New versions are never pinned current on creation — an admin must
-// explicitly promote one via `setCurrentAudioVersion`.
 export async function registerAudioVersion(
   input: unknown,
 ): Promise<ActionResult<{ versionId: string }>> {
