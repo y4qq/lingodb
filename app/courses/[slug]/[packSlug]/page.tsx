@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getPublishedPackBySlugs } from "@/lib/domains/courses/queries/public";
+import { getMyPackBySlugs } from "@/lib/domains/courses/queries/public";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -25,7 +25,7 @@ export default function PackPage({ params }: Props) {
 
 async function PackContent({ params }: Props) {
   const { slug, packSlug } = await params;
-  const result = await getPublishedPackBySlugs(slug, packSlug);
+  const result = await getMyPackBySlugs(slug, packSlug);
   if (!result) notFound();
 
   const { course, pack } = result;

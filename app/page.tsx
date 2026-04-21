@@ -1,7 +1,17 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import { createClient } from "@/lib/supabase/server";
 
-export default function Home() {
+export default async function Home() {
+  const supabase = await createClient();
+  const { data } = await supabase.auth.getUser();
+
+  if (data.user) {
+    // Authenticated → let /courses do the enrollment / active-course routing.
+    redirect("/courses");
+  }
+
   return (
     <main className="flex min-h-svh w-full flex-col items-center justify-center gap-8 p-6">
       <div className="flex flex-col items-center gap-3 text-center">

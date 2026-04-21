@@ -9,6 +9,7 @@ import {
   getAdminLessonBySlugs as getAdminLessonBySlugsRow,
   getAdminPackBySlugs as getAdminPackBySlugsRow,
   listAdminCourses as listAdminCoursesRows,
+  listAdminCoursesWithEnrollments as listAdminCoursesWithEnrollmentsRows,
   listRecentAdminCourses as listRecentAdminCoursesRows,
 } from "../course.service";
 
@@ -21,6 +22,11 @@ const SIGNED_URL_TTL_SECONDS = 60 * 10; // 10 minutes
 export async function listAdminCourses() {
   await requireAdmin();
   return listAdminCoursesRows();
+}
+
+export async function listAdminCoursesWithEnrollments() {
+  await requireAdmin();
+  return listAdminCoursesWithEnrollmentsRows();
 }
 
 export async function listRecentAdminCourses(limit = 5) {

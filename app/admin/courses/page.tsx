@@ -1,12 +1,14 @@
 import { Suspense } from "react";
-import { listAdminCourses } from "@/lib/domains/courses/queries/admin";
+import { listAdminCoursesWithEnrollments } from "@/lib/domains/courses/queries/admin";
 import { AdminPageHeader } from "@/components/admin/admin-page-header";
 import { CourseCreateButton } from "@/components/admin/course-create-button";
 import { DataTable, type Column } from "@/components/admin/data-table";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 
-type CourseRow = Awaited<ReturnType<typeof listAdminCourses>>[number];
+type CourseRow = Awaited<
+  ReturnType<typeof listAdminCoursesWithEnrollments>
+>[number];
 
 const columns: Column<CourseRow>[] = [
   {
@@ -25,6 +27,15 @@ const columns: Column<CourseRow>[] = [
     header: "Slug",
     cell: (c) => (
       <span className="text-muted-foreground font-mono text-xs">{c.slug}</span>
+    ),
+  },
+  {
+    header: "Enrolled",
+    className: "w-24 text-right",
+    cell: (c) => (
+      <span className="text-muted-foreground tabular-nums">
+        {c.enrollmentCount}
+      </span>
     ),
   },
   {
@@ -62,7 +73,7 @@ export default function AdminCoursesPage() {
 }
 
 async function CoursesList() {
-  const rows = await listAdminCourses();
+  const rows = await listAdminCoursesWithEnrollments();
   return (
     <DataTable
       columns={columns}

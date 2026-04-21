@@ -15,16 +15,27 @@ export async function requireUser() {
 }
 
 export async function requireAdmin() {
+  const { user, profile } = await requireUserWithProfile();
+  if (profile.role !== "admin") {
+    notFound();
+  }
+  return { user, profile };
+}
+
+export async function requireUserWithProfile() {
   const user = await requireUser();
   const profile = await db.query.users.findFirst({
     where: eq(users.id, user.id),
-    columns: { id: true, email: true, displayName: true, role: true },
+    columns: {
+      id: true,
+      email: true,
+      displayName: true,
+      role: true,
+      activeCourseId: true,
+    },
   });
   if (!profile) {
     redirect("/error?error=Profile%20missing");
-  }
-  if (profile.role !== "admin") {
-    notFound();
   }
   return { user, profile };
 }

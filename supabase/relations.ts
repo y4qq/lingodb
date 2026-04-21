@@ -9,12 +9,30 @@ import {
   lessons,
   packs,
   tags,
+  userCourses,
   users,
 } from "./schema";
 
-export const usersRelations = relations(users, ({ many }) => ({
+export const usersRelations = relations(users, ({ one, many }) => ({
   authoredComments: many(comments, { relationName: "comments_author" }),
   moderatedComments: many(comments, { relationName: "comments_moderator" }),
+  enrollments: many(userCourses),
+  activeCourse: one(courses, {
+    fields: [users.activeCourseId],
+    references: [courses.id],
+    relationName: "users_active_course",
+  }),
+}));
+
+export const userCoursesRelations = relations(userCourses, ({ one }) => ({
+  user: one(users, {
+    fields: [userCourses.userId],
+    references: [users.id],
+  }),
+  course: one(courses, {
+    fields: [userCourses.courseId],
+    references: [courses.id],
+  }),
 }));
 
 export const languagesRelations = relations(languages, ({ many }) => ({
@@ -35,6 +53,8 @@ export const coursesRelations = relations(courses, ({ one, many }) => ({
   }),
   packs: many(packs),
   comments: many(comments),
+  enrollments: many(userCourses),
+  activeForUsers: many(users, { relationName: "users_active_course" }),
 }));
 
 export const packsRelations = relations(packs, ({ one, many }) => ({

@@ -1,8 +1,14 @@
-import { AdminShortcut } from "@/components/auth/admin-shortcut";
-import { AuthButton } from "@/components/auth/auth-button";
-import { ThemeSwitcher } from "@/components/theme-switcher";
-import Link from "next/link";
 import { Suspense } from "react";
+import { AppSidebar } from "@/components/app/app-sidebar";
+import { AddCourseButton } from "@/components/app/add-course-button";
+import {
+  SidebarInset,
+  SidebarProvider,
+} from "@/components/ui/sidebar";
+import { Skeleton } from "@/components/ui/skeleton";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { requireUserWithProfile } from "@/lib/auth/guards";
+import { listMyEnrollments } from "@/lib/domains/users/queries/user";
 
 export default function CoursesLayout({
   children,
@@ -10,30 +16,47 @@ export default function CoursesLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex min-h-svh flex-col">
-      <header className="border-b">
-        <div className="mx-auto flex h-16 w-full max-w-5xl items-center justify-between px-5 text-sm">
-          <Link href="/courses" className="font-semibold">
-            Fluent Fast
-          </Link>
-          <div className="flex items-center gap-3">
-            <Suspense>
-              <AdminShortcut />
+    <Suspense fallback={<AppShellFallback />}>
+      <AppShell>{children}</AppShell>
+    </Suspense>
+  );
+}
+
+async function AppShell({ children }: { children: React.ReactNode }) {
+  const { profile } = await requireUserWithProfile();
+  const enrollments = await listMyEnrollments();
+
+  const navItems = enrollments.map((e) => ({
+    id: e.courseId,
+    slug: e.course.slug,
+    title: e.course.title,
+  }));
+
+  return (
+    <TooltipProvider>
+      <SidebarProvider>
+        <AppSidebar
+          userEmail={profile.email}
+          userName={profile.displayName}
+          enrollments={navItems}
+          addCourseTrigger={
+            <Suspense fallback={null}>
+              <AddCourseButton />
             </Suspense>
-            <Suspense>
-              <AuthButton />
-            </Suspense>
-          </div>
-        </div>
-      </header>
-      <main className="mx-auto w-full max-w-5xl flex-1 px-5 py-10">
-        {children}
-      </main>
-      <footer className="border-t">
-        <div className="mx-auto flex w-full max-w-5xl items-center justify-end px-5 py-4">
-          <ThemeSwitcher />
-        </div>
-      </footer>
+          }
+        />
+        <SidebarInset>
+          <div className="flex flex-1 flex-col gap-6 p-6">{children}</div>
+        </SidebarInset>
+      </SidebarProvider>
+    </TooltipProvider>
+  );
+}
+
+function AppShellFallback() {
+  return (
+    <div className="flex min-h-svh items-center justify-center p-6">
+      <Skeleton className="h-24 w-full max-w-md" />
     </div>
   );
 }

@@ -37,6 +37,7 @@ export const users = pgTable('users', {
   email: text('email').notNull().unique(),
   displayName: text('display_name'),
   role: userRole('role').notNull().default('user'),
+  activeCourseId: uuid('active_course_id').references((): AnyPgColumn => courses.id, { onDelete: 'set null' }),
   ...timestamps,
 }).enableRLS();
 
@@ -121,6 +122,15 @@ export const lessonAudioVersions = pgTable('lesson_audio_versions', {
     'lesson_audio_versions_disabled_not_current_check',
     sql`NOT (${t.isCurrent} AND ${t.disabledAt} IS NOT NULL)`,
   ),
+]).enableRLS();
+
+export const userCourses = pgTable('user_courses', {
+  userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  courseId: uuid('course_id').notNull().references(() => courses.id, { onDelete: 'cascade' }),
+  enrolledAt: timestamp('enrolled_at', { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [
+  primaryKey({ columns: [t.userId, t.courseId], name: 'user_courses_pkey' }),
+  index('user_courses_course_id_idx').on(t.courseId),
 ]).enableRLS();
 
 export const lessonTags = pgTable('lesson_tags', {

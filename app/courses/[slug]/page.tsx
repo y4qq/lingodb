@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getPublishedCourseBySlug } from "@/lib/domains/courses/queries/public";
+import { getMyCourseBySlug } from "@/lib/domains/courses/queries/public";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -32,7 +32,7 @@ export default function CoursePage({ params }: Props) {
 
 async function CourseContent({ params }: Props) {
   const { slug } = await params;
-  const course = await getPublishedCourseBySlug(slug);
+  const course = await getMyCourseBySlug(slug);
   if (!course) notFound();
 
   return (

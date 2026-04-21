@@ -17,7 +17,7 @@ import {
   SidebarMenuItem,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
-import { UserMenu } from "./user-menu";
+import { UserMenu } from "@/components/auth/user-menu";
 
 type NavItem = {
   label: string;

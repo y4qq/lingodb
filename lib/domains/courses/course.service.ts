@@ -1,5 +1,5 @@
 import "server-only";
-import { and, asc, count, desc, eq, max } from "drizzle-orm";
+import { and, asc, count, desc, eq, max, notInArray } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { ConflictError, NotFoundError } from "@/lib/errors";
 import {
@@ -8,6 +8,7 @@ import {
   lessonAudioVersions,
   lessons,
   packs,
+  userCourses,
 } from "@/supabase/schema";
 import type { CreateCourseInput, UpdateCourseInput } from "./course.validation";
 import type { CreateLessonInput } from "./lesson.validation";
@@ -87,6 +88,99 @@ export async function listAdminCourses() {
       targetLanguage: true,
     },
   });
+}
+
+export async function listAdminCoursesWithEnrollments() {
+  const [rows, counts] = await Promise.all([
+    listAdminCourses(),
+    db
+      .select({ courseId: userCourses.courseId, n: count() })
+      .from(userCourses)
+      .groupBy(userCourses.courseId),
+  ]);
+  const countMap = new Map(counts.map((r) => [r.courseId, r.n]));
+  return rows.map((r) => ({ ...r, enrollmentCount: countMap.get(r.id) ?? 0 }));
+}
+
+// Courses the user can still add to their library: published, and not already
+// enrolled in.
+export async function listAvailableCoursesForUser(userId: string) {
+  const enrolledCourseIds = db
+    .select({ id: userCourses.courseId })
+    .from(userCourses)
+    .where(eq(userCourses.userId, userId));
+
+  return db.query.courses.findMany({
+    where: and(
+      eq(courses.isPublished, true),
+      notInArray(courses.id, enrolledCourseIds),
+    ),
+    orderBy: asc(courses.title),
+    with: {
+      baseLanguage: true,
+      targetLanguage: true,
+    },
+  });
+}
+
+// Gate into a course: returns the course only if the user is enrolled. Draft
+// courses a user has already joined remain accessible.
+export async function getCourseForUser(userId: string, slug: string) {
+  const course = await db.query.courses.findFirst({
+    where: eq(courses.slug, slug),
+    with: {
+      packs: {
+        where: eq(packs.isPublished, true),
+        orderBy: asc(packs.position),
+      },
+    },
+  });
+  if (!course) return null;
+
+  const enrollment = await db.query.userCourses.findFirst({
+    where: and(
+      eq(userCourses.userId, userId),
+      eq(userCourses.courseId, course.id),
+    ),
+    columns: { courseId: true },
+  });
+  if (!enrollment) return null;
+
+  return course;
+}
+
+export async function getPackForUser(
+  userId: string,
+  courseSlug: string,
+  packSlug: string,
+) {
+  const course = await db.query.courses.findFirst({
+    where: eq(courses.slug, courseSlug),
+    with: {
+      packs: {
+        where: eq(packs.slug, packSlug),
+        with: {
+          lessons: {
+            where: eq(lessons.isPublished, true),
+            orderBy: asc(lessons.position),
+          },
+        },
+      },
+    },
+  });
+  const pack = course?.packs[0];
+  if (!course || !pack) return null;
+
+  const enrollment = await db.query.userCourses.findFirst({
+    where: and(
+      eq(userCourses.userId, userId),
+      eq(userCourses.courseId, course.id),
+    ),
+    columns: { courseId: true },
+  });
+  if (!enrollment) return null;
+
+  return { course, pack };
 }
 
 export async function listRecentAdminCourses(limit = 5) {
