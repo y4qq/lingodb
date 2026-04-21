@@ -1,3 +1,4 @@
+import { ensureProfile } from "@/lib/auth/ensure-profile";
 import { createClient } from "@/lib/supabase/server";
 import { type EmailOtpType } from "@supabase/supabase-js";
 import { redirect } from "next/navigation";
@@ -12,19 +13,25 @@ export async function GET(request: NextRequest) {
   if (token_hash && type) {
     const supabase = await createClient();
 
-    const { error } = await supabase.auth.verifyOtp({
+    const { data, error } = await supabase.auth.verifyOtp({
       type,
       token_hash,
     });
     if (!error) {
-      // redirect user to specified redirect URL or root of app
+      if (!data.user) {
+        redirect(`/auth/error?error=No%20user%20after%20verification`);
+      }
+      try {
+        await ensureProfile(data.user);
+      } catch (err) {
+        console.error("Failed to ensure profile", data.user.id, err);
+        redirect(`/auth/error?error=Profile%20creation%20failed`);
+      }
       redirect(next);
     } else {
-      // redirect the user to an error page with some instructions
       redirect(`/auth/error?error=${error?.message}`);
     }
   }
 
-  // redirect the user to an error page with some instructions
   redirect(`/auth/error?error=No token hash or type`);
 }
