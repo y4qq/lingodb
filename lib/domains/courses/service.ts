@@ -5,13 +5,23 @@ import { courses, languages, lessons, packs } from "@/supabase/schema";
 import { ConflictError, NotFoundError } from "@/lib/errors";
 import type { CreateCourseInput } from "./validators";
 
+// This file is PRIVATE to the courses domain. Pages and components MUST NOT
+// import from here — consume lib/domains/courses/queries/* (reads) or
+// lib/domains/courses/actions/* (mutations). The ESLint rule enforces this;
+// see eslint.config.mjs.
+//
+// Services do no auth and no Zod parsing. They take already-validated,
+// already-authorized inputs and perform data access. The wrapper layer
+// (queries/, actions/, or a route.ts controller) owns the auth+validation
+// boundary.
+
 // -----------------------------------------------------------------------------
 // Reads (public-visible subset)
 // -----------------------------------------------------------------------------
 // Every "public" read filters `isPublished = true` at every ancestor level.
 // Drizzle connects as `postgres` and bypasses RLS, so visibility is enforced
-// at the query layer — these rules match what anon/authenticated callers
-// would see if we ever expose tables via the public PostgREST API.
+// here — these rules match what anon/authenticated callers would see if we
+// ever expose tables via the public PostgREST API.
 
 export async function listPublishedCourses() {
   return db.query.courses.findMany({
@@ -59,8 +69,7 @@ export async function getPublishedPackBySlugs(
 // -----------------------------------------------------------------------------
 // Admin reads (includes drafts)
 // -----------------------------------------------------------------------------
-// The service function itself enforces nothing — the caller (action or page)
-// is responsible for the admin guard.
+// Returns drafts. The admin guard lives in queries/admin.ts.
 
 export async function listAllCourses() {
   return db.query.courses.findMany({
@@ -76,9 +85,8 @@ export async function listAllCourses() {
 // Writes
 // -----------------------------------------------------------------------------
 
-// Creates a new course. Starts in draft (is_published = false). Admin-only
-// at the caller; this function takes a validated input and enforces nothing
-// about the actor.
+// Creates a new course. Starts in draft (is_published = false). The admin
+// guard lives in actions/admin.ts.
 //
 // Throws:
 //   - NotFoundError if either language id doesn't resolve.

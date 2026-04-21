@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import Link from "next/link";
-import { listPublishedCourses } from "@/lib/courses/service";
+import { listPublishedCourses } from "@/lib/domains/courses/queries/public";
 import {
   Card,
   CardDescription,

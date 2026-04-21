@@ -1,4 +1,4 @@
-import { ensureProfile } from "@/lib/users/service";
+import { ensureProfile } from "@/lib/domains/users/service";
 import { createClient } from "@/lib/supabase/server";
 import { type EmailOtpType } from "@supabase/supabase-js";
 import { redirect } from "next/navigation";

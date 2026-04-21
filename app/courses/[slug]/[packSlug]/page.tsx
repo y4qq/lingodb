@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getPublishedPackBySlugs } from "@/lib/courses/service";
+import { getPublishedPackBySlugs } from "@/lib/domains/courses/queries/public";
 import {
   Breadcrumb,
   BreadcrumbItem,

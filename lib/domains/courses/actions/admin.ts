@@ -4,8 +4,8 @@ import * as Sentry from "@sentry/nextjs";
 import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/lib/auth/guards";
 import { ConflictError, NotFoundError } from "@/lib/errors";
-import { createCourse } from "./service";
-import { createCourseSchema } from "./validators";
+import { createCourse } from "../service";
+import { createCourseSchema } from "../validators";
 
 // Discriminated union matching the shape `useActionState` expects on the
 // client. `fieldErrors` carries per-field Zod errors; `error` carries a

@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import Link from "next/link";
-import { listAllCourses } from "@/lib/courses/service";
+import { listAllCourses } from "@/lib/domains/courses/queries/admin";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
