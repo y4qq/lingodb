@@ -43,3 +43,6 @@ next-env.d.ts
 
 # personal notes — not part of the public repo
 /notes
+
+# Sentry Config File
+.env.sentry-build-plugin

@@ -9,8 +9,8 @@
 
 do $$
 declare
-  admin_id uuid := '11111111-1111-1111-1111-111111111111';
-  user_id  uuid := '22222222-2222-2222-2222-222222222222';
+  admin_id uuid := '11111111-1111-4111-8111-111111111111';
+  user_id  uuid := '22222222-2222-4222-8222-222222222222';
   pw       text := extensions.crypt('Password123', extensions.gen_salt('bf'));
 begin
   insert into auth.users (
@@ -51,12 +51,12 @@ end $$;
 -- chain. Runs as postgres, bypassing RLS.
 do $$
 declare
-  lang_en          uuid := '33333333-3333-3333-3333-333333333301';
-  lang_th          uuid := '33333333-3333-3333-3333-333333333302';
-  course_id        uuid := '44444444-4444-4444-4444-444444444401';
-  pack_id          uuid := '55555555-5555-5555-5555-555555555501';
-  lesson_id        uuid := '66666666-6666-6666-6666-666666666601';
-  audio_version_id uuid := '77777777-7777-7777-7777-777777777701';
+  lang_en          uuid := '33333333-3333-4333-8333-333333333301';
+  lang_th          uuid := '33333333-3333-4333-8333-333333333302';
+  course_id        uuid := '44444444-4444-4444-8444-444444444401';
+  pack_id          uuid := '55555555-5555-4555-8555-555555555501';
+  lesson_id        uuid := '66666666-6666-4666-8666-666666666601';
+  audio_version_id uuid := '77777777-7777-4777-8777-777777777701';
 begin
   insert into public.languages (id, code, name) values
     (lang_en, 'en', 'English'),

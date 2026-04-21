@@ -13,6 +13,7 @@ const PUBLIC_PATH_PREFIXES = [
   "/update-password",
   "/error",
   "/auth/",
+  "/monitoring", // Sentry tunnel route (configured in next.config.ts)
 ] as const;
 
 // Paths meant only for unauthenticated visitors: marketing home plus the auth

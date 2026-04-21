@@ -1,14 +1,10 @@
 import "server-only";
-import { redirect } from "next/navigation";
+import { eq } from "drizzle-orm";
+import { notFound, redirect } from "next/navigation";
+import { db } from "@/lib/db";
+import { users } from "@/supabase/schema";
 import { createClient } from "@/lib/supabase/server";
 
-// Returns the authenticated Supabase user. Redirects to the login page if
-// there's no active session. Call this at the top of any server component,
-// server action, or route handler that requires a logged-in user.
-//
-// The middleware in /proxy.ts already gates most routes; this is the
-// in-code narrow that gives callers a non-null User without another null
-// check everywhere.
 export async function requireUser() {
   const supabase = await createClient();
   const { data, error } = await supabase.auth.getUser();
@@ -16,4 +12,19 @@ export async function requireUser() {
     redirect("/login");
   }
   return data.user;
+}
+
+export async function requireAdmin() {
+  const user = await requireUser();
+  const profile = await db.query.users.findFirst({
+    where: eq(users.id, user.id),
+    columns: { id: true, email: true, displayName: true, role: true },
+  });
+  if (!profile) {
+    redirect("/error?error=Profile%20missing");
+  }
+  if (profile.role !== "admin") {
+    notFound();
+  }
+  return { user, profile };
 }
