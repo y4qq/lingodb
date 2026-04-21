@@ -19,7 +19,8 @@ import {
 } from "../audio.validation";
 import * as courses from "../course.service";
 import { createCourseSchema, updateCourseSchema } from "../course.validation";
-import { updatePackSchema } from "../pack.validation";
+import { createLessonSchema } from "../lesson.validation";
+import { createPackSchema, updatePackSchema } from "../pack.validation";
 
 const ADMIN_COURSES_ROUTE = "/admin/courses";
 const ADMIN_LESSON_ROUTE = "/admin/courses/[slug]/[packSlug]/[lessonSlug]";
@@ -69,6 +70,46 @@ export async function updateCourse(
       revalidatePath(ADMIN_COURSES_ROUTE);
       revalidatePath(`/admin/courses/${data.slug}`);
     },
+    extra: { input: parsed.data },
+  });
+}
+
+export async function createPack(
+  _prev: ActionResult<{ id: string; slug: string }> | undefined,
+  formData: FormData,
+): Promise<ActionResult<{ id: string; slug: string }>> {
+  const parsed = createPackSchema.safeParse(Object.fromEntries(formData));
+  if (!parsed.success) {
+    return { ok: false, fieldErrors: toFieldErrors(parsed.error) };
+  }
+
+  return runAdminAction({
+    actionName: "createPack",
+    execute: async () => {
+      const pack = await courses.createPack(parsed.data);
+      return { id: pack.id, slug: pack.slug };
+    },
+    onSuccess: () => revalidatePath("/admin", "layout"),
+    extra: { input: parsed.data },
+  });
+}
+
+export async function createLesson(
+  _prev: ActionResult<{ id: string; slug: string }> | undefined,
+  formData: FormData,
+): Promise<ActionResult<{ id: string; slug: string }>> {
+  const parsed = createLessonSchema.safeParse(Object.fromEntries(formData));
+  if (!parsed.success) {
+    return { ok: false, fieldErrors: toFieldErrors(parsed.error) };
+  }
+
+  return runAdminAction({
+    actionName: "createLesson",
+    execute: async () => {
+      const lesson = await courses.createLesson(parsed.data);
+      return { id: lesson.id, slug: lesson.slug };
+    },
+    onSuccess: () => revalidatePath("/admin", "layout"),
     extra: { input: parsed.data },
   });
 }

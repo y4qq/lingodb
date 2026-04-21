@@ -1,5 +1,5 @@
 import "server-only";
-import { and, asc, count, desc, eq } from "drizzle-orm";
+import { and, asc, count, desc, eq, max } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { ConflictError, NotFoundError } from "@/lib/errors";
 import {
@@ -10,7 +10,8 @@ import {
   packs,
 } from "@/supabase/schema";
 import type { CreateCourseInput, UpdateCourseInput } from "./course.validation";
-import type { UpdatePackInput } from "./pack.validation";
+import type { CreateLessonInput } from "./lesson.validation";
+import type { CreatePackInput, UpdatePackInput } from "./pack.validation";
 
 // This file is PRIVATE to the courses domain. Pages and components MUST NOT
 // import from here — consume lib/domains/courses/queries/* (reads) or
@@ -274,6 +275,89 @@ export async function updateCourse(
     throw new NotFoundError(`Course ${id} not found`);
   }
   return updated;
+}
+
+export async function createPack(input: CreatePackInput) {
+  const course = await db.query.courses.findFirst({
+    where: eq(courses.id, input.courseId),
+    columns: { id: true },
+  });
+  if (!course) {
+    throw new NotFoundError("Course not found");
+  }
+
+  const existing = await db.query.packs.findFirst({
+    where: and(
+      eq(packs.courseId, input.courseId),
+      eq(packs.slug, input.slug),
+    ),
+    columns: { id: true },
+  });
+  if (existing) {
+    throw new ConflictError(
+      `A pack with slug "${input.slug}" already exists in this course`,
+    );
+  }
+
+  const [{ maxPos }] = await db
+    .select({ maxPos: max(packs.position) })
+    .from(packs)
+    .where(eq(packs.courseId, input.courseId));
+  const position = (maxPos ?? -1) + 1;
+
+  const [pack] = await db
+    .insert(packs)
+    .values({
+      courseId: input.courseId,
+      slug: input.slug,
+      title: input.title,
+      description: input.description,
+      position,
+      isFree: input.isFree,
+    })
+    .returning();
+  return pack;
+}
+
+export async function createLesson(input: CreateLessonInput) {
+  const pack = await db.query.packs.findFirst({
+    where: eq(packs.id, input.packId),
+    columns: { id: true },
+  });
+  if (!pack) {
+    throw new NotFoundError("Pack not found");
+  }
+
+  const existing = await db.query.lessons.findFirst({
+    where: and(
+      eq(lessons.packId, input.packId),
+      eq(lessons.slug, input.slug),
+    ),
+    columns: { id: true },
+  });
+  if (existing) {
+    throw new ConflictError(
+      `A lesson with slug "${input.slug}" already exists in this pack`,
+    );
+  }
+
+  const [{ maxPos }] = await db
+    .select({ maxPos: max(lessons.position) })
+    .from(lessons)
+    .where(eq(lessons.packId, input.packId));
+  const position = (maxPos ?? -1) + 1;
+
+  const [lesson] = await db
+    .insert(lessons)
+    .values({
+      packId: input.packId,
+      slug: input.slug,
+      title: input.title,
+      description: input.description,
+      position,
+    })
+    .returning();
+  return lesson;
 }
 
 export async function updatePack(

@@ -1,15 +1,14 @@
 import { Suspense } from "react";
-import Link from "next/link";
 import { BookOpen, GraduationCap, Layers, Library } from "lucide-react";
 import {
   getAdminCourseStats,
   listRecentAdminCourses,
 } from "@/lib/domains/courses/queries/admin";
 import { AdminPageHeader } from "@/components/admin/admin-page-header";
+import { CourseCreateButton } from "@/components/admin/course-create-button";
 import { DataTable, type Column } from "@/components/admin/data-table";
 import { StatCard } from "@/components/admin/stat-card";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 
 type RecentCourseRow = Awaited<
@@ -54,9 +53,9 @@ export default function AdminDashboardPage() {
         title="Dashboard"
         description="Overview of your content library."
         action={
-          <Button asChild>
-            <Link href="/admin/courses/new">Create course</Link>
-          </Button>
+          <Suspense fallback={<Skeleton className="h-9 w-36" />}>
+            <CourseCreateButton />
+          </Suspense>
         }
       />
 

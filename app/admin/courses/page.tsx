@@ -1,10 +1,9 @@
 import { Suspense } from "react";
-import Link from "next/link";
 import { listAdminCourses } from "@/lib/domains/courses/queries/admin";
 import { AdminPageHeader } from "@/components/admin/admin-page-header";
+import { CourseCreateButton } from "@/components/admin/course-create-button";
 import { DataTable, type Column } from "@/components/admin/data-table";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 
 type CourseRow = Awaited<ReturnType<typeof listAdminCourses>>[number];
@@ -50,9 +49,9 @@ export default function AdminCoursesPage() {
         title="Courses"
         description="All courses, published and draft."
         action={
-          <Button asChild>
-            <Link href="/admin/courses/new">Create course</Link>
-          </Button>
+          <Suspense fallback={<Skeleton className="h-9 w-36" />}>
+            <CourseCreateButton />
+          </Suspense>
         }
       />
       <Suspense fallback={<Skeleton className="h-64 w-full" />}>

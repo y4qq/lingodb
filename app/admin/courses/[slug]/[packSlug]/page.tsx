@@ -1,13 +1,12 @@
 import { Suspense } from "react";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getAdminPackBySlugs } from "@/lib/domains/courses/queries/admin";
 import { AdminPageHeader } from "@/components/admin/admin-page-header";
 import { AdminPageHeaderSkeleton } from "@/components/admin/admin-page-header-skeleton";
 import { DataTable, type Column } from "@/components/admin/data-table";
+import { LessonCreateDialog } from "@/components/admin/lesson-create-dialog";
 import { PackEditDialog } from "@/components/admin/pack-edit-dialog";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 
 type Props = { params: Promise<{ slug: string; packSlug: string }> };
@@ -79,11 +78,7 @@ async function Content({ params }: Props) {
         }
         action={
           <div className="flex items-center gap-2">
-            <Button asChild>
-              <Link href={`/admin/courses/${course.slug}/${pack.slug}/new`}>
-                Create lesson
-              </Link>
-            </Button>
+            <LessonCreateDialog packId={pack.id} />
             <PackEditDialog
               pack={{
                 id: pack.id,
