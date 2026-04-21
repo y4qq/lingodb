@@ -1,16 +1,11 @@
 "use client";
 
-import { useState, useTransition } from "react";
-import {
-  disableAudioVersion,
-  enableAudioVersion,
-  setCurrentAudioVersion,
-} from "@/lib/domains/courses/actions/admin";
+import { useAudioPlayer } from "@/components/audio-player";
+import { useAudioSelection } from "@/components/admin/audio-selection-provider";
+import { DataTable, type Column } from "@/components/admin/data-table";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 
-// Row shape comes straight from getAdminLessonBySlugs — keep in sync if the
-// query ever changes.
 export type AudioVersion = {
   id: string;
   label: string;
@@ -27,102 +22,79 @@ export function AudioVersionsTable({
 }: {
   versions: AudioVersion[];
 }) {
-  if (versions.length === 0) {
-    return (
-      <p className="text-muted-foreground text-sm">
-        No audio versions yet. Add the first one above.
-      </p>
-    );
-  }
+  const { play, track } = useAudioPlayer();
+  const { selectedId, setSelectedId } = useAudioSelection();
 
-  return (
-    <ul className="flex flex-col gap-3">
-      {versions.map((v) => (
-        <AudioVersionRow key={v.id} version={v} />
-      ))}
-    </ul>
-  );
-}
-
-function AudioVersionRow({ version }: { version: AudioVersion }) {
-  const [pending, startTransition] = useTransition();
-  const [error, setError] = useState<string | null>(null);
-  const isDisabled = version.disabledAt !== null;
-
-  function run(action: (input: { versionId: string }) => Promise<{
-    ok: true;
-    data: { versionId: string };
-  } | { ok: false; error?: string; fieldErrors?: Record<string, string[]> }>) {
-    setError(null);
-    startTransition(async () => {
-      const result = await action({ versionId: version.id });
-      if (!result.ok) {
-        setError(result.error ?? "Something went wrong.");
-      }
-    });
-  }
-
-  return (
-    <li className="flex flex-col gap-3 rounded-md border px-4 py-3 text-sm">
-      <div className="flex items-start justify-between gap-4">
-        <div className="flex flex-col gap-1">
-          <div className="flex items-center gap-2">
-            <span className="font-medium">{version.label}</span>
-            {version.isCurrent && <Badge>Current</Badge>}
-            {isDisabled && <Badge variant="secondary">Disabled</Badge>}
-          </div>
-          <span className="text-muted-foreground text-xs">
-            {formatDuration(version.audioDurationSeconds)} · Added{" "}
-            {formatDate(version.createdAt)}
-          </span>
-        </div>
-        <div className="flex items-center gap-2">
-          {!version.isCurrent && !isDisabled && (
-            <Button
-              size="sm"
-              variant="outline"
-              disabled={pending}
-              onClick={() => run(setCurrentAudioVersion)}
-            >
-              Set as current
-            </Button>
-          )}
-          {isDisabled ? (
-            <Button
-              size="sm"
-              variant="outline"
-              disabled={pending}
-              onClick={() => run(enableAudioVersion)}
-            >
-              Enable
-            </Button>
-          ) : (
-            <Button
-              size="sm"
-              variant="ghost"
-              className="text-destructive hover:text-destructive"
-              disabled={pending}
-              onClick={() => run(disableAudioVersion)}
-            >
-              Disable
-            </Button>
+  const columns: Column<AudioVersion>[] = [
+    {
+      header: "",
+      className: "w-10",
+      cell: (v) => (
+        <Checkbox
+          checked={selectedId === v.id}
+          onCheckedChange={(checked) =>
+            setSelectedId(checked ? v.id : null)
+          }
+          onClick={(e) => e.stopPropagation()}
+          aria-label={`Select ${v.label}`}
+        />
+      ),
+    },
+    {
+      header: "Label",
+      cell: (v) => <span className="font-medium">{v.label}</span>,
+    },
+    {
+      header: "Duration",
+      cell: (v) => (
+        <span className="text-muted-foreground font-mono text-xs tabular-nums">
+          {formatDuration(v.audioDurationSeconds)}
+        </span>
+      ),
+    },
+    {
+      header: "Added",
+      cell: (v) => (
+        <span className="text-muted-foreground">{formatDate(v.createdAt)}</span>
+      ),
+    },
+    {
+      header: "Status",
+      className: "w-44",
+      cell: (v) => (
+        <div className="flex items-center gap-1.5">
+          {v.isCurrent && <Badge>Current</Badge>}
+          {v.disabledAt !== null && <Badge variant="secondary">Disabled</Badge>}
+          {track?.id === v.id && (
+            <Badge variant="outline">Playing</Badge>
           )}
         </div>
-      </div>
-      {version.signedUrl ? (
-        <audio controls src={version.signedUrl} className="w-full" />
-      ) : (
-        <p className="text-muted-foreground text-xs italic">
-          Playback URL unavailable.
-        </p>
-      )}
-      {error && <p className="text-destructive text-xs">{error}</p>}
-    </li>
+      ),
+    },
+  ];
+
+  return (
+    <DataTable
+      columns={columns}
+      data={versions}
+      rowKey={(v) => v.id}
+      rowIsSelected={(v) => selectedId === v.id}
+      onRowClick={(v) => {
+        if (!v.signedUrl) return;
+        play({
+          id: v.id,
+          label: v.label,
+          src: v.signedUrl,
+          durationSeconds: v.audioDurationSeconds,
+        });
+      }}
+      empty="No audio versions yet. Upload one to get started."
+    />
   );
 }
 
 function formatDuration(seconds: number | null): string {
-  if (seconds == null) return "— duration unknown";
+  if (seconds == null) return "—";
   const m = Math.floor(seconds / 60);
   const s = seconds % 60;
   return `${m}:${s.toString().padStart(2, "0")}`;

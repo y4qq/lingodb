@@ -21,6 +21,8 @@ type DataTableProps<T> = {
   rowKey: (row: T) => string;
   empty: ReactNode;
   rowHref?: (row: T) => string;
+  onRowClick?: (row: T) => void;
+  rowIsSelected?: (row: T) => boolean;
 };
 
 export function DataTable<T>({
@@ -29,6 +31,8 @@ export function DataTable<T>({
   rowKey,
   empty,
   rowHref,
+  onRowClick,
+  rowIsSelected,
 }: DataTableProps<T>) {
   if (data.length === 0) {
     return (
@@ -51,26 +55,32 @@ export function DataTable<T>({
           </TableRow>
         </TableHeader>
         <TableBody>
-          {data.map((row) => (
-            <TableRow
-              key={rowKey(row)}
-              className={rowHref ? "relative cursor-pointer" : undefined}
-            >
-              {columns.map((col, i) => (
-                <TableCell key={col.header} className={col.className}>
-                  {i === 0 && rowHref && (
-                    <Link
-                      href={rowHref(row)}
-                      tabIndex={-1}
-                      aria-hidden
-                      className="absolute inset-0"
-                    />
-                  )}
-                  {col.cell(row)}
-                </TableCell>
-              ))}
-            </TableRow>
-          ))}
+          {data.map((row) => {
+            const selected = rowIsSelected?.(row) ?? false;
+            const clickable = Boolean(rowHref || onRowClick);
+            return (
+              <TableRow
+                key={rowKey(row)}
+                className={clickable ? "relative cursor-pointer" : undefined}
+                data-state={selected ? "selected" : undefined}
+                onClick={onRowClick ? () => onRowClick(row) : undefined}
+              >
+                {columns.map((col, i) => (
+                  <TableCell key={col.header} className={col.className}>
+                    {i === 0 && rowHref && (
+                      <Link
+                        href={rowHref(row)}
+                        tabIndex={-1}
+                        aria-hidden
+                        className="absolute inset-0"
+                      />
+                    )}
+                    {col.cell(row)}
+                  </TableCell>
+                ))}
+              </TableRow>
+            );
+          })}
         </TableBody>
       </Table>
     </div>

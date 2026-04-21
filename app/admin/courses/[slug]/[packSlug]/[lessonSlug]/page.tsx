@@ -3,8 +3,13 @@ import { notFound } from "next/navigation";
 import { getAdminLessonBySlugs } from "@/lib/domains/courses/queries/admin";
 import { AdminPageHeader } from "@/components/admin/admin-page-header";
 import { AdminPageHeaderSkeleton } from "@/components/admin/admin-page-header-skeleton";
-import { AudioVersionUploader } from "@/components/admin/audio-version-uploader";
+import { AudioSelectionProvider } from "@/components/admin/audio-selection-provider";
+import { AudioVersionsHeaderActions } from "@/components/admin/audio-versions-header-actions";
 import { AudioVersionsTable } from "@/components/admin/audio-versions-table";
+import {
+  AudioPlayerBar,
+  AudioPlayerProvider,
+} from "@/components/audio-player";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -28,37 +33,43 @@ async function Content({ params }: Props) {
   const { course, pack, lesson } = result;
 
   return (
-    <>
-      <AdminPageHeader
-        breadcrumbs={[
-          { href: "/admin", label: "Dashboard" },
-          { href: "/admin/courses", label: "Courses" },
-          { href: `/admin/courses/${course.slug}`, label: course.title },
-          {
-            href: `/admin/courses/${course.slug}/${pack.slug}`,
-            label: pack.title,
-          },
-          { label: lesson.title },
-        ]}
-        title={lesson.title}
-        meta={
-          <Badge variant={lesson.isPublished ? "default" : "secondary"}>
-            {lesson.isPublished ? "Published" : "Draft"}
-          </Badge>
-        }
-        description={
-          lesson.description ?? `Lesson ${lesson.position} · ${lesson.slug}`
-        }
-      />
+    <AudioPlayerProvider>
+      <AudioSelectionProvider>
+        <AdminPageHeader
+          breadcrumbs={[
+            { href: "/admin", label: "Dashboard" },
+            { href: "/admin/courses", label: "Courses" },
+            { href: `/admin/courses/${course.slug}`, label: course.title },
+            {
+              href: `/admin/courses/${course.slug}/${pack.slug}`,
+              label: pack.title,
+            },
+            { label: lesson.title },
+          ]}
+          title={lesson.title}
+          meta={
+            <Badge variant={lesson.isPublished ? "default" : "secondary"}>
+              {lesson.isPublished ? "Published" : "Draft"}
+            </Badge>
+          }
+          description={
+            lesson.description ?? `Lesson ${lesson.position} · ${lesson.slug}`
+          }
+          action={
+            <AudioVersionsHeaderActions
+              lessonId={lesson.id}
+              versions={lesson.audioVersions}
+            />
+          }
+        />
 
-      <section className="flex flex-col gap-4">
-        <div className="flex items-center justify-between gap-4">
+        <section className="flex flex-col gap-4">
           <h2 className="text-lg font-medium">Audio versions</h2>
-          <AudioVersionUploader lessonId={lesson.id} />
-        </div>
-        <AudioVersionsTable versions={lesson.audioVersions} />
-      </section>
-    </>
+          <AudioVersionsTable versions={lesson.audioVersions} />
+        </section>
+      </AudioSelectionProvider>
+      <AudioPlayerBar />
+    </AudioPlayerProvider>
   );
 }
 
