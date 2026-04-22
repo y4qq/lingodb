@@ -58,12 +58,12 @@ export function CommentItem({
         <AvatarFallback>{name[0]?.toUpperCase() ?? "?"}</AvatarFallback>
       </Avatar>
       <div className="flex min-w-0 flex-1 flex-col gap-1">
-        <div className="flex items-baseline gap-2">
+        <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
           <span className="truncate text-sm font-medium">{name}</span>
           <span className="text-muted-foreground text-xs">{when}</span>
           {isOwnPending && (
             <Badge variant="secondary" className="ml-auto">
-              Pending review
+              Pending
             </Badge>
           )}
         </div>

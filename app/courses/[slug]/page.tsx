@@ -1,37 +1,25 @@
 import { Suspense } from "react";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getCourseCommentsForMe } from "@/lib/domains/comments/queries/public";
 import { getMyCourseBySlug } from "@/lib/domains/courses/queries/public";
-import { CommentsPanel } from "@/components/app/comments-panel";
+import {
+  CommentsPanel,
+  CommentsSidebar,
+} from "@/components/app/comments-panel";
 import { PageHeader } from "@/components/common/page-header";
 import { PageHeaderSkeleton } from "@/components/common/page-header-skeleton";
-import { DataTable, type Column } from "@/components/common/data-table";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 
 type Props = { params: Promise<{ slug: string }> };
-
-type Course = NonNullable<Awaited<ReturnType<typeof getMyCourseBySlug>>>;
-type UnitRow = Course["units"][number];
-
-const unitColumns: Column<UnitRow>[] = [
-  {
-    header: "#",
-    cell: (p) => (
-      <span className="text-muted-foreground tabular-nums">{p.position}</span>
-    ),
-    className: "w-12",
-  },
-  {
-    header: "Title",
-    cell: (p) => <span className="font-medium">{p.title}</span>,
-  },
-  {
-    header: "Description",
-    cell: (p) => (
-      <span className="text-muted-foreground">{p.description ?? "—"}</span>
-    ),
-  },
-];
 
 export default function CoursePage({ params }: Props) {
   return (
@@ -49,33 +37,65 @@ async function Content({ params }: Props) {
   const { comments, currentUserId } = await getCourseCommentsForMe(course.id);
 
   return (
-    <>
+    <div className="mx-auto flex w-full max-w-5xl flex-col gap-6">
       <PageHeader breadcrumbs={[]} title="Units" />
 
-      <section className="flex flex-col gap-4">
-        <DataTable
-          columns={unitColumns}
-          data={course.units}
-          rowKey={(p) => p.id}
-          rowHref={(p) => `/courses/${course.slug}/${p.slug}`}
-          empty="No units yet."
-        />
-      </section>
+      <div className="grid gap-10 lg:grid-cols-8 lg:items-start">
+        <section className="flex flex-col gap-6 lg:col-span-4">
+          {course.units.length === 0 ? (
+            <p className="text-sm text-muted-foreground">No units yet.</p>
+          ) : (
+            course.units.map((unit) => (
+              <Card key={unit.id}>
+                <CardHeader className="items-center text-center">
+                  <CardTitle>{unit.title}</CardTitle>
+                  {unit.description && (
+                    <CardDescription>{unit.description}</CardDescription>
+                  )}
+                </CardHeader>
+                <CardFooter>
+                  <Button asChild variant="outline" className="w-full">
+                    <Link href={`/courses/${course.slug}/${unit.slug}`}>
+                      Open unit
+                    </Link>
+                  </Button>
+                </CardFooter>
+              </Card>
+            ))
+          )}
+        </section>
 
-      <CommentsPanel
-        target={{ kind: "course", courseId: course.id }}
-        initialComments={comments}
-        currentUserId={currentUserId}
-      />
-    </>
+        <CommentsSidebar
+          className="sticky top-6 hidden max-h-[calc(100vh-10rem)] lg:col-span-4 lg:flex"
+          target={{ kind: "course", courseId: course.id }}
+          initialComments={comments}
+          currentUserId={currentUserId}
+        />
+      </div>
+
+      <div className="lg:hidden">
+        <CommentsPanel
+          target={{ kind: "course", courseId: course.id }}
+          initialComments={comments}
+          currentUserId={currentUserId}
+        />
+      </div>
+    </div>
   );
 }
 
 function Fallback() {
   return (
-    <>
+    <div className="mx-auto flex w-full max-w-5xl flex-col gap-6">
       <PageHeaderSkeleton />
-      <Skeleton className="h-64 w-full" />
-    </>
+      <div className="grid gap-6 lg:grid-cols-3">
+        <section className="flex flex-col gap-4 lg:col-span-2">
+          <Skeleton className="h-48 w-full rounded-4xl" />
+          <Skeleton className="h-48 w-full rounded-4xl" />
+          <Skeleton className="h-48 w-full rounded-4xl" />
+        </section>
+        <Skeleton className="hidden h-full w-full rounded-4xl lg:col-span-1 lg:block" />
+      </div>
+    </div>
   );
 }

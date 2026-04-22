@@ -10,7 +10,6 @@ import type { CommentWithThread } from "@/lib/domains/comments/queries/public";
 import { CommentItem } from "@/components/app/comment-item";
 import { CommentReplyForm } from "@/components/app/comment-reply-form";
 import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Sheet,
   SheetContent,
@@ -71,6 +70,28 @@ export function CommentsPanel({
   );
 }
 
+export function CommentsSidebar({
+  target,
+  initialComments,
+  currentUserId,
+  className,
+}: CommentsPanelProps & { className?: string }) {
+  return (
+    <aside
+      className={cn(
+        "flex flex-col overflow-hidden rounded-4xl border-2 border-border bg-background",
+        className,
+      )}
+    >
+      <div className="border-b-2 px-4 py-3 bg-sidebar">
+        <h2 className="font-heading text-base font-medium">Comments</h2>
+      </div>
+      <CommentsList comments={initialComments} currentUserId={currentUserId} />
+      <CommentForm target={target} />
+    </aside>
+  );
+}
+
 function CommentsList({
   comments,
   currentUserId,
@@ -91,7 +112,7 @@ function CommentsList({
   }
 
   return (
-    <ScrollArea className="flex-1">
+    <div className="min-h-0 flex-1 overflow-y-auto">
       <ul className="flex flex-col gap-5 px-4 py-4">
         {comments.map((c) => (
           <li key={c.id} className="flex flex-col gap-3">
@@ -125,7 +146,7 @@ function CommentsList({
           </li>
         ))}
       </ul>
-    </ScrollArea>
+    </div>
   );
 }
 
@@ -148,7 +169,7 @@ function CommentForm({ target }: { target: CommentsPanelProps["target"] }) {
     <form
       ref={formRef}
       action={formAction}
-      className="border-t bg-background p-4 flex flex-col gap-2"
+      className="border-t-2 bg-background p-4 flex flex-col gap-2"
     >
       {target.kind === "course" ? (
         <input type="hidden" name="courseId" value={target.courseId} />
@@ -167,10 +188,7 @@ function CommentForm({ target }: { target: CommentsPanelProps["target"] }) {
       {summaryError && (
         <p className="text-destructive text-xs">{summaryError}</p>
       )}
-      <div className="flex items-center justify-between gap-2">
-        <p className="text-muted-foreground text-xs">
-          Comments are reviewed before they appear publicly.
-        </p>
+      <div className="flex items-center justify-end gap-2">
         <Button type="submit" size="sm" disabled={isPending}>
           <Send className="size-3.5" />
           {isPending ? "Posting…" : "Post"}
