@@ -1,21 +1,14 @@
-import { redirect } from "next/navigation";
-import { listPublishedCourses } from "@/lib/domains/courses/queries/public";
-import { listMyEnrollments } from "@/lib/domains/users/queries/user";
+import { listAvailableCoursesForMe } from "@/lib/domains/courses/queries/public";
 import { EnrollCourseCard } from "./enroll-course-card";
 
-export default async function WelcomePage() {
-  const enrollments = await listMyEnrollments();
-  if (enrollments.length > 0) {
-    redirect("/courses");
-  }
-
-  const available = await listPublishedCourses();
+export default async function EnrollPage() {
+  const available = await listAvailableCoursesForMe();
 
   return (
     <div className="flex flex-col gap-8">
       <header className="flex flex-col gap-2">
         <h1 className="text-3xl font-semibold tracking-tight">
-          Welcome to Fluent Fast
+          Enroll in a course
         </h1>
         <p className="text-muted-foreground">
           Pick a course to get started. You can always add more later.
@@ -24,7 +17,7 @@ export default async function WelcomePage() {
 
       {available.length === 0 ? (
         <p className="text-muted-foreground text-sm">
-          No courses are available yet. Check back soon.
+          You&apos;re enrolled in every available course.
         </p>
       ) : (
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">

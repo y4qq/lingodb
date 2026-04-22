@@ -1,22 +1,20 @@
 "use client";
 
-import type { ReactNode } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BookOpen, Plus } from "lucide-react";
+import { BookOpen, Layers, RotateCcw } from "lucide-react";
 import { UserMenu } from "@/components/auth/user-menu";
+import { CourseSwitcher } from "@/components/app/course-switcher";
 import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
-  SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  SidebarSeparator,
 } from "@/components/ui/sidebar";
 
 export type EnrollmentNavItem = {
@@ -29,81 +27,65 @@ type Props = {
   userEmail: string;
   userName: string | null;
   enrollments: EnrollmentNavItem[];
-  addCourseTrigger: ReactNode;
 };
 
-export function AppSidebar({
-  userEmail,
-  userName,
-  enrollments,
-  addCourseTrigger,
-}: Props) {
+export function AppSidebar({ userEmail, userName, enrollments }: Props) {
   const pathname = usePathname();
+  const slugMatch = pathname.match(/^\/courses\/([^/]+)/);
+  const activeSlug = slugMatch?.[1] ?? enrollments[0]?.slug ?? null;
 
   return (
-    <Sidebar >
+    <Sidebar>
       <SidebarHeader>
-        <div className="flex items-center justify-between group-data-[collapsible=icon]:justify-center">
-          <span className="px-2 text-sm font-semibold tracking-tight group-data-[collapsible=icon]:hidden">
+        <div className="flex items-center">
+          <span className="px-2 text-sm font-semibold tracking-tight">
             Fluent Fast
           </span>
         </div>
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>My courses</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {enrollments.length === 0 ? (
-                <SidebarMenuItem>
-                  <div className="text-muted-foreground px-2 py-1 text-xs group-data-[collapsible=icon]:hidden">
-                    No courses yet.
-                  </div>
-                </SidebarMenuItem>
-              ) : (
-                enrollments.map((e) => (
-                  <SidebarMenuItem key={e.id}>
-                    <SidebarMenuButton
-                      asChild
-                      isActive={pathname.startsWith(`/courses/${e.slug}`)}
-                      tooltip={e.title}
-                    >
-                      <Link href={`/courses/${e.slug}`}>
-                        <BookOpen />
-                        <span>{e.title}</span>
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                ))
-              )}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-        <SidebarSeparator />
-        <SidebarGroup>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              <SidebarMenuItem>{addCourseTrigger}</SidebarMenuItem>
+              <SidebarMenuItem>
+                {activeSlug ? (
+                  <SidebarMenuButton
+                    asChild
+                    isActive={pathname.startsWith(`/courses/${activeSlug}`)}
+                    tooltip="Lessons"
+                  >
+                    <Link href={`/courses/${activeSlug}`}>
+                      <BookOpen />
+                      <span>Lessons</span>
+                    </Link>
+                  </SidebarMenuButton>
+                ) : (
+                  <SidebarMenuButton disabled tooltip="Lessons">
+                    <BookOpen />
+                    <span>Lessons</span>
+                  </SidebarMenuButton>
+                )}
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton disabled tooltip="Flashcards">
+                  <Layers />
+                  <span>Flashcards</span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton disabled tooltip="Review">
+                  <RotateCcw />
+                  <span>Review</span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
       <SidebarFooter>
+        <CourseSwitcher enrollments={enrollments} activeSlug={activeSlug} />
         <UserMenu email={userEmail} name={userName} />
       </SidebarFooter>
     </Sidebar>
-  );
-}
-
-export function AddCourseMenuButton({
-  onClick,
-}: {
-  onClick?: () => void;
-}) {
-  return (
-    <SidebarMenuButton tooltip="Add course" onClick={onClick}>
-      <Plus />
-      <span>Add course</span>
-    </SidebarMenuButton>
   );
 }

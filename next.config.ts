@@ -3,6 +3,10 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   cacheComponents: true,
+  // Supabase's local site_url is http://127.0.0.1:3000, so confirmation links
+  // land there. Whitelist 127.0.0.1 so Next's dev-mode cross-origin guard
+  // doesn't block HMR / client resources when the browser isn't on localhost.
+  allowedDevOrigins: ["127.0.0.1"],
 };
 
 export default withSentryConfig(nextConfig, {

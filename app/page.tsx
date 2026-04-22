@@ -1,13 +1,7 @@
 import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
 
-export default async function Home() {
-  const supabase = await createClient();
-  const { data } = await supabase.auth.getUser();
-
-  if (data.user) {
-    redirect("/courses");
-  }
-
+// The proxy redirects `/` based on auth state (→ /courses when signed in,
+// → /login otherwise), so this page is only reached as a fallback.
+export default function Home() {
   redirect("/login");
 }

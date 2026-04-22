@@ -14,7 +14,7 @@ export default async function CourseSlugLayout({ children, params }: Props) {
 
   const access = await assertCanAccessMyCourse(slug);
   if (!access) {
-    redirect("/welcome");
+    redirect("/enroll");
   }
 
   // Implicit switch: visiting a course makes it the active one.

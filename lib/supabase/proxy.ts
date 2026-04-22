@@ -67,9 +67,13 @@ export async function updateSession(request: NextRequest) {
   const user = data?.claims;
 
   const pathname = request.nextUrl.pathname;
-  const isPublic =
-    pathname === "/" ||
-    PUBLIC_PATH_PREFIXES.some((prefix) => pathname.startsWith(prefix));
+  const isPublic = PUBLIC_PATH_PREFIXES.some((prefix) =>
+    pathname.startsWith(prefix),
+  );
+  // `/` is an auth-state switchboard: authed users go to /courses,
+  // unauthed users go to /login. The proxy handles this so the page
+  // itself doesn't have to read cookies (avoids the cacheComponents
+  // "dynamic data outside <Suspense>" warning).
   const isUnauthOnly =
     pathname === "/" ||
     UNAUTH_ONLY_PATH_PREFIXES.some((prefix) => pathname.startsWith(prefix));

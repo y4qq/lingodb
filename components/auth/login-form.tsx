@@ -2,6 +2,7 @@
 
 import { cn } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/client";
+import { isAuthApiError } from "@supabase/supabase-js";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -16,6 +17,12 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
+type UnconfirmedState =
+  | { kind: "idle" }
+  | { kind: "sending" }
+  | { kind: "sent" }
+  | { kind: "error"; message: string };
+
 export function LoginForm({
   className,
   ...props
@@ -23,6 +30,8 @@ export function LoginForm({
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [unconfirmed, setUnconfirmed] = useState(false);
+  const [resend, setResend] = useState<UnconfirmedState>({ kind: "idle" });
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
 
@@ -31,6 +40,8 @@ export function LoginForm({
     const supabase = createClient();
     setIsLoading(true);
     setError(null);
+    setUnconfirmed(false);
+    setResend({ kind: "idle" });
 
     try {
       const { error } = await supabase.auth.signInWithPassword({
@@ -38,13 +49,37 @@ export function LoginForm({
         password,
       });
       if (error) throw error;
-      // Update this route to redirect to an authenticated route. The user already has an active session.
       router.push("/courses");
-    } catch (error: unknown) {
-      setError(error instanceof Error ? error.message : "An error occurred");
+    } catch (err: unknown) {
+      if (isAuthApiError(err) && err.code === "email_not_confirmed") {
+        setUnconfirmed(true);
+      } else {
+        setError(err instanceof Error ? err.message : "An error occurred");
+      }
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleResend = async () => {
+    if (!email) {
+      setResend({ kind: "error", message: "Enter your email first." });
+      return;
+    }
+    const supabase = createClient();
+    setResend({ kind: "sending" });
+    const { error } = await supabase.auth.resend({
+      type: "signup",
+      email,
+      options: {
+        emailRedirectTo: `${window.location.origin}/courses`,
+      },
+    });
+    if (error) {
+      setResend({ kind: "error", message: error.message });
+      return;
+    }
+    setResend({ kind: "sent" });
   };
 
   return (
@@ -88,6 +123,12 @@ export function LoginForm({
                   onChange={(e) => setPassword(e.target.value)}
                 />
               </div>
+              {unconfirmed && (
+                <UnconfirmedNotice
+                  state={resend}
+                  onResend={handleResend}
+                />
+              )}
               {error && <p className="text-sm text-red-500">{error}</p>}
               <Button type="submit" className="w-full" disabled={isLoading}>
                 {isLoading ? "Logging in..." : "Login"}
@@ -105,6 +146,41 @@ export function LoginForm({
           </form>
         </CardContent>
       </Card>
+    </div>
+  );
+}
+
+function UnconfirmedNotice({
+  state,
+  onResend,
+}: {
+  state: UnconfirmedState;
+  onResend: () => void;
+}) {
+  return (
+    <div className="flex flex-col gap-2 rounded-md border border-amber-300/60 bg-amber-50 p-3 text-sm text-amber-900">
+      <p className="font-medium">Confirm your email to continue</p>
+      <p className="text-amber-800">
+        We sent a confirmation link to your inbox. Click it to finish setting
+        up your account, then come back and log in.
+      </p>
+      <div className="flex items-center gap-2">
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={onResend}
+          disabled={state.kind === "sending"}
+        >
+          {state.kind === "sending" ? "Sending…" : "Resend email"}
+        </Button>
+        {state.kind === "sent" && (
+          <span className="text-xs">Sent — check your inbox.</span>
+        )}
+        {state.kind === "error" && (
+          <span className="text-destructive text-xs">{state.message}</span>
+        )}
+      </div>
     </div>
   );
 }

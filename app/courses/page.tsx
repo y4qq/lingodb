@@ -11,5 +11,5 @@ export default async function CoursesHubPage() {
     await setActiveCourseForMe(decision.courseId);
     redirect(`/courses/${decision.slug}`);
   }
-  redirect("/welcome");
+  redirect("/enroll");
 }
