@@ -11,9 +11,9 @@ import { Skeleton } from "@/components/ui/skeleton";
 type Props = { params: Promise<{ slug: string }> };
 
 type Course = NonNullable<Awaited<ReturnType<typeof getMyCourseBySlug>>>;
-type PackRow = Course["packs"][number];
+type UnitRow = Course["units"][number];
 
-const packColumns: Column<PackRow>[] = [
+const unitColumns: Column<UnitRow>[] = [
   {
     header: "#",
     cell: (p) => (
@@ -50,23 +50,15 @@ async function Content({ params }: Props) {
 
   return (
     <>
-      <PageHeader
-        breadcrumbs={[
-          { href: "/courses", label: "Courses" },
-          { label: course.title },
-        ]}
-        title={course.title}
-        description={course.description ?? undefined}
-      />
+      <PageHeader breadcrumbs={[]} title="Units" />
 
       <section className="flex flex-col gap-4">
-        <h2 className="text-lg font-medium">Packs</h2>
         <DataTable
-          columns={packColumns}
-          data={course.packs}
+          columns={unitColumns}
+          data={course.units}
           rowKey={(p) => p.id}
           rowHref={(p) => `/courses/${course.slug}/${p.slug}`}
-          empty="No packs yet."
+          empty="No units yet."
         />
       </section>
 

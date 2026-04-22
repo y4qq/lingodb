@@ -60,7 +60,7 @@ declare
   lang_it          uuid := '33333333-3333-4333-8333-333333333307';
   lang_pt          uuid := '33333333-3333-4333-8333-333333333308';
   course_id        uuid := '44444444-4444-4444-8444-444444444401';
-  pack_id          uuid := '55555555-5555-4555-8555-555555555501';
+  unit_id          uuid := '55555555-5555-4555-8555-555555555501';
   lesson_id        uuid := '66666666-6666-4666-8666-666666666601';
   audio_version_id uuid := '77777777-7777-4777-8777-777777777701';
 begin
@@ -78,7 +78,7 @@ begin
     (id, base_language_id, target_language_id, slug, title, description,
      is_published)
   values
-    -- Original Thai course kept so downstream seed rows (pack, lesson,
+    -- Original Thai course kept so downstream seed rows (unit, lesson,
     -- audio) still reference it.
     (course_id, lang_en, lang_th, 'thai-for-english-speakers',
      'Thai for English Speakers', 'Seed course for local dev.', true),
@@ -101,16 +101,16 @@ begin
     ('44444444-4444-4444-8444-444444444409', lang_es, lang_fr,
      'french-for-spanish-speakers',     'French for Spanish Speakers',     null, true);
 
-  insert into public.packs
+  insert into public.units
     (id, course_id, slug, title, description, position, is_published)
   values
-    (pack_id, course_id, 'pack-1', 'Pack 1',
-     'Seed pack for local dev.', 1, true);
+    (unit_id, course_id, 'unit-1', 'Unit 1',
+     'Seed unit for local dev.', 1, true);
 
   insert into public.lessons
-    (id, pack_id, slug, title, description, position, is_published)
+    (id, unit_id, slug, title, description, position, is_published)
   values
-    (lesson_id, pack_id, 'lesson-1', 'Lesson 1',
+    (lesson_id, unit_id, 'lesson-1', 'Lesson 1',
      'Seed lesson for local dev.', 1, true);
 
   insert into public.lesson_audio_versions

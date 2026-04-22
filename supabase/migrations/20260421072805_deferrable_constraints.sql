@@ -3,10 +3,10 @@
 
 -- Deferrable position uniques: lets admins reorder rows within a transaction
 -- where uniqueness is transiently violated between two swaps.
-ALTER TABLE public.packs
-  ADD CONSTRAINT packs_course_position_key UNIQUE (course_id, position)
+ALTER TABLE public.units
+  ADD CONSTRAINT units_course_position_key UNIQUE (course_id, position)
   DEFERRABLE INITIALLY DEFERRED;
 
 ALTER TABLE public.lessons
-  ADD CONSTRAINT lessons_pack_position_key UNIQUE (pack_id, position)
+  ADD CONSTRAINT lessons_unit_position_key UNIQUE (unit_id, position)
   DEFERRABLE INITIALLY DEFERRED;

@@ -11,7 +11,7 @@ import { LessonAudioTable } from "@/components/app/lesson-audio-table";
 import { Skeleton } from "@/components/ui/skeleton";
 
 type Props = {
-  params: Promise<{ slug: string; packSlug: string; lessonSlug: string }>;
+  params: Promise<{ slug: string; unitSlug: string; lessonSlug: string }>;
 };
 
 export default function LessonPage({ params }: Props) {
@@ -23,23 +23,21 @@ export default function LessonPage({ params }: Props) {
 }
 
 async function Content({ params }: Props) {
-  const { slug, packSlug, lessonSlug } = await params;
-  const result = await getMyLessonBySlugs(slug, packSlug, lessonSlug);
+  const { slug, unitSlug, lessonSlug } = await params;
+  const result = await getMyLessonBySlugs(slug, unitSlug, lessonSlug);
   if (!result) notFound();
 
-  const { course, pack, lesson } = result;
+  const { course, unit, lesson } = result;
 
   return (
     <AudioPlayerProvider>
       <PageHeader
         breadcrumbs={[
-          { href: "/courses", label: "Courses" },
-          { href: `/courses/${course.slug}`, label: course.title },
+          { href: `/courses/${course.slug}`, label: "Units" },
           {
-            href: `/courses/${course.slug}/${pack.slug}`,
-            label: pack.title,
+            href: `/courses/${course.slug}/${unit.slug}`,
+            label: unit.title,
           },
-          { label: lesson.title },
         ]}
         title={lesson.title}
         description={lesson.description ?? undefined}

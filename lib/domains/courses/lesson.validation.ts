@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 export const createLessonSchema = z.object({
-  packId: z.uuid(),
+  unitId: z.uuid(),
   slug: z
     .string()
     .min(1, "Slug is required")

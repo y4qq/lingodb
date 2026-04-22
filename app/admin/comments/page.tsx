@@ -36,7 +36,7 @@ export default async function AdminCommentsPage({ searchParams }: Props) {
           { label: "Comments" },
         ]}
         title="Comments"
-        description="Moderate user-submitted comments on courses and packs."
+        description="Moderate user-submitted comments on courses and units."
       />
 
       <Suspense fallback={<Skeleton className="h-10 w-full max-w-xl" />}>
@@ -213,7 +213,7 @@ function TargetCell({ row }: { row: AdminModerationRow }) {
 
 type Target = { href: string; label: string };
 
-// Resolve target from direct course/pack FKs for top-level, or from the
+// Resolve target from direct course/unit FKs for top-level, or from the
 // parent's FKs for replies.
 function resolveTarget(row: AdminModerationRow): Target | null {
   if (row.course) {
@@ -222,10 +222,10 @@ function resolveTarget(row: AdminModerationRow): Target | null {
       label: row.course.title,
     };
   }
-  if (row.pack) {
+  if (row.unit) {
     return {
-      href: `/courses/${row.pack.course.slug}/${row.pack.slug}`,
-      label: `${row.pack.course.title} › ${row.pack.title}`,
+      href: `/courses/${row.unit.course.slug}/${row.unit.slug}`,
+      label: `${row.unit.course.title} › ${row.unit.title}`,
     };
   }
   if (row.parent) {
@@ -235,10 +235,10 @@ function resolveTarget(row: AdminModerationRow): Target | null {
         label: row.parent.course.title,
       };
     }
-    if (row.parent.pack) {
+    if (row.parent.unit) {
       return {
-        href: `/courses/${row.parent.pack.course.slug}/${row.parent.pack.slug}`,
-        label: `${row.parent.pack.course.title} › ${row.parent.pack.title}`,
+        href: `/courses/${row.parent.unit.course.slug}/${row.parent.unit.slug}`,
+        label: `${row.parent.unit.course.title} › ${row.parent.unit.title}`,
       };
     }
   }

@@ -5,16 +5,16 @@ import { PageHeader } from "@/components/common/page-header";
 import { PageHeaderSkeleton } from "@/components/common/page-header-skeleton";
 import { CourseEditDialog } from "@/components/admin/course-edit-dialog";
 import { DataTable, type Column } from "@/components/common/data-table";
-import { PackCreateDialog } from "@/components/admin/pack-create-dialog";
+import { UnitCreateDialog } from "@/components/admin/unit-create-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 
 type Props = { params: Promise<{ slug: string }> };
 
 type Course = NonNullable<Awaited<ReturnType<typeof getAdminCourseBySlug>>>;
-type PackRow = Course["packs"][number];
+type UnitRow = Course["units"][number];
 
-const packColumns: Column<PackRow>[] = [
+const unitColumns: Column<UnitRow>[] = [
   {
     header: "#",
     cell: (p) => (
@@ -76,7 +76,7 @@ async function Content({ params }: Props) {
         }
         action={
           <div className="flex items-center gap-2">
-            <PackCreateDialog courseId={course.id} />
+            <UnitCreateDialog courseId={course.id} />
             <CourseEditDialog
               course={{
                 id: course.id,
@@ -91,13 +91,13 @@ async function Content({ params }: Props) {
       />
 
       <section className="flex flex-col gap-4">
-        <h2 className="text-lg font-medium">Packs</h2>
+        <h2 className="text-lg font-medium">Units</h2>
         <DataTable
-          columns={packColumns}
-          data={course.packs}
+          columns={unitColumns}
+          data={course.units}
           rowKey={(p) => p.id}
           rowHref={(p) => `/admin/courses/${course.slug}/${p.slug}`}
-          empty="No packs yet."
+          empty="No units yet."
         />
       </section>
     </>

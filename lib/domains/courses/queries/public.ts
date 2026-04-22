@@ -6,13 +6,13 @@ import { AUDIO_BUCKET } from "../audio.shared";
 import {
   getCourseForUser as getCourseForUserRow,
   getLessonForUser as getLessonForUserRow,
-  getPackForUser as getPackForUserRow,
+  getUnitForUser as getUnitForUserRow,
   listAvailableCoursesForUser as listAvailableCoursesForUserRows,
 } from "../course.service";
 
 export {
   getPublishedCourseBySlug,
-  getPublishedPackBySlugs,
+  getPublishedUnitBySlugs,
   listPublishedCourses,
 } from "../course.service";
 
@@ -28,21 +28,21 @@ export async function getMyCourseBySlug(slug: string) {
   return getCourseForUserRow(user.id, slug);
 }
 
-export async function getMyPackBySlugs(courseSlug: string, packSlug: string) {
+export async function getMyUnitBySlugs(courseSlug: string, unitSlug: string) {
   const user = await requireUser();
-  return getPackForUserRow(user.id, courseSlug, packSlug);
+  return getUnitForUserRow(user.id, courseSlug, unitSlug);
 }
 
 export async function getMyLessonBySlugs(
   courseSlug: string,
-  packSlug: string,
+  unitSlug: string,
   lessonSlug: string,
 ) {
   const user = await requireUser();
   const row = await getLessonForUserRow(
     user.id,
     courseSlug,
-    packSlug,
+    unitSlug,
     lessonSlug,
   );
   if (!row) return null;
@@ -77,7 +77,7 @@ export async function getMyLessonBySlugs(
 
   return {
     course: row.course,
-    pack: row.pack,
+    unit: row.unit,
     lesson: {
       ...row.lesson,
       audioVersions: versionsWithUrls,

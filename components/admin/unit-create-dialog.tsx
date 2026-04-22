@@ -3,7 +3,7 @@
 import { useActionState, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Plus } from "lucide-react";
-import { createPack } from "@/lib/domains/courses/actions/admin";
+import { createUnit } from "@/lib/domains/courses/actions/admin";
 import { FormField } from "@/components/admin/form-field";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -20,7 +20,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 
-export function PackCreateDialog({ courseId }: { courseId: string }) {
+export function UnitCreateDialog({ courseId }: { courseId: string }) {
   const [open, setOpen] = useState(false);
 
   return (
@@ -28,30 +28,30 @@ export function PackCreateDialog({ courseId }: { courseId: string }) {
       <DialogTrigger asChild>
         <Button>
           <Plus />
-          Create pack
+          Create unit
         </Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Create pack</DialogTitle>
+          <DialogTitle>Create unit</DialogTitle>
           <DialogDescription>
-            Starts as a draft at the end of the pack list.
+            Starts as a draft at the end of the unit list.
           </DialogDescription>
         </DialogHeader>
-        <CreatePackForm courseId={courseId} onClose={() => setOpen(false)} />
+        <CreateUnitForm courseId={courseId} onClose={() => setOpen(false)} />
       </DialogContent>
     </Dialog>
   );
 }
 
-function CreatePackForm({
+function CreateUnitForm({
   courseId,
   onClose,
 }: {
   courseId: string;
   onClose: () => void;
 }) {
-  const [state, action, isPending] = useActionState(createPack, undefined);
+  const [state, action, isPending] = useActionState(createUnit, undefined);
   const router = useRouter();
 
   useEffect(() => {
@@ -103,7 +103,7 @@ function CreatePackForm({
       <div className="flex items-center gap-2">
         <Checkbox id="isFree" name="isFree" defaultChecked />
         <Label htmlFor="isFree" className="cursor-pointer">
-          Free pack
+          Free unit
         </Label>
       </div>
 
@@ -116,7 +116,7 @@ function CreatePackForm({
           Cancel
         </Button>
         <Button type="submit" disabled={isPending}>
-          {isPending ? "Creating…" : "Create pack"}
+          {isPending ? "Creating…" : "Create unit"}
         </Button>
       </DialogFooter>
     </form>

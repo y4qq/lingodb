@@ -18,7 +18,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 
-export function LessonCreateDialog({ packId }: { packId: string }) {
+export function LessonCreateDialog({ unitId }: { unitId: string }) {
   const [open, setOpen] = useState(false);
 
   return (
@@ -36,17 +36,17 @@ export function LessonCreateDialog({ packId }: { packId: string }) {
             Starts as a draft at the end of the lesson list.
           </DialogDescription>
         </DialogHeader>
-        <CreateLessonForm packId={packId} onClose={() => setOpen(false)} />
+        <CreateLessonForm unitId={unitId} onClose={() => setOpen(false)} />
       </DialogContent>
     </Dialog>
   );
 }
 
 function CreateLessonForm({
-  packId,
+  unitId,
   onClose,
 }: {
-  packId: string;
+  unitId: string;
   onClose: () => void;
 }) {
   const [state, action, isPending] = useActionState(createLesson, undefined);
@@ -64,12 +64,12 @@ function CreateLessonForm({
 
   return (
     <form action={action} className="flex flex-col gap-4">
-      <input type="hidden" name="packId" value={packId} />
+      <input type="hidden" name="unitId" value={unitId} />
 
       <FormField
         id="slug"
         label="Slug"
-        description="lowercase-kebab-case; unique within this pack"
+        description="lowercase-kebab-case; unique within this unit"
         error={fieldErrors?.slug?.[0]}
       >
         <Input id="slug" name="slug" required placeholder="hello" />

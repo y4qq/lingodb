@@ -4,7 +4,7 @@ import { useActionState, useEffect, useRef, useState } from "react";
 import { MessageCircle, Send } from "lucide-react";
 import {
   submitCourseComment,
-  submitPackComment,
+  submitUnitComment,
 } from "@/lib/domains/comments/actions/user";
 import type { CommentWithThread } from "@/lib/domains/comments/queries/public";
 import { CommentItem } from "@/components/app/comment-item";
@@ -24,7 +24,7 @@ import { cn } from "@/lib/utils";
 export type CommentsPanelProps = {
   target:
     | { kind: "course"; courseId: string }
-    | { kind: "pack"; packId: string };
+    | { kind: "unit"; unitId: string };
   initialComments: CommentWithThread[];
   currentUserId: string;
 };
@@ -131,7 +131,7 @@ function CommentsList({
 
 function CommentForm({ target }: { target: CommentsPanelProps["target"] }) {
   const action =
-    target.kind === "course" ? submitCourseComment : submitPackComment;
+    target.kind === "course" ? submitCourseComment : submitUnitComment;
   const [state, formAction, isPending] = useActionState(action, undefined);
   const formRef = useRef<HTMLFormElement>(null);
 
@@ -153,7 +153,7 @@ function CommentForm({ target }: { target: CommentsPanelProps["target"] }) {
       {target.kind === "course" ? (
         <input type="hidden" name="courseId" value={target.courseId} />
       ) : (
-        <input type="hidden" name="packId" value={target.packId} />
+        <input type="hidden" name="unitId" value={target.unitId} />
       )}
       <Textarea
         name="body"

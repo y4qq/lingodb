@@ -44,7 +44,7 @@ export function CourseCreateDialog({ languages }: { languages: Language[] }) {
         <DialogHeader>
           <DialogTitle>Create course</DialogTitle>
           <DialogDescription>
-            Starts as a draft. Publish it once its packs and lessons are ready.
+            Starts as a draft. Publish it once its units and lessons are ready.
           </DialogDescription>
         </DialogHeader>
         <CreateCourseForm

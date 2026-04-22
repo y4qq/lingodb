@@ -7,12 +7,12 @@ import {
   languages,
   lessonAudioVersions,
   lessons,
-  packs,
+  units,
   userCourses,
 } from "@/supabase/schema";
 import type { CreateCourseInput, UpdateCourseInput } from "./course.validation";
 import type { CreateLessonInput } from "./lesson.validation";
-import type { CreatePackInput, UpdatePackInput } from "./pack.validation";
+import type { CreateUnitInput, UpdateUnitInput } from "./unit.validation";
 
 export async function listPublishedCourses() {
   return db.query.courses.findMany({
@@ -25,24 +25,24 @@ export async function getPublishedCourseBySlug(slug: string) {
   const course = await db.query.courses.findFirst({
     where: and(eq(courses.slug, slug), eq(courses.isPublished, true)),
     with: {
-      packs: {
-        where: eq(packs.isPublished, true),
-        orderBy: asc(packs.position),
+      units: {
+        where: eq(units.isPublished, true),
+        orderBy: asc(units.position),
       },
     },
   });
   return course ?? null;
 }
 
-export async function getPublishedPackBySlugs(
+export async function getPublishedUnitBySlugs(
   courseSlug: string,
-  packSlug: string,
+  unitSlug: string,
 ) {
   const course = await db.query.courses.findFirst({
     where: and(eq(courses.slug, courseSlug), eq(courses.isPublished, true)),
     with: {
-      packs: {
-        where: and(eq(packs.slug, packSlug), eq(packs.isPublished, true)),
+      units: {
+        where: and(eq(units.slug, unitSlug), eq(units.isPublished, true)),
         with: {
           lessons: {
             where: eq(lessons.isPublished, true),
@@ -52,9 +52,9 @@ export async function getPublishedPackBySlugs(
       },
     },
   });
-  const pack = course?.packs[0];
-  if (!course || !pack) return null;
-  return { course, pack };
+  const unit = course?.units[0];
+  if (!course || !unit) return null;
+  return { course, unit };
 }
 
 export async function listAdminCourses() {
@@ -102,9 +102,9 @@ export async function getCourseForUser(userId: string, slug: string) {
   const course = await db.query.courses.findFirst({
     where: eq(courses.slug, slug),
     with: {
-      packs: {
-        where: eq(packs.isPublished, true),
-        orderBy: asc(packs.position),
+      units: {
+        where: eq(units.isPublished, true),
+        orderBy: asc(units.position),
       },
     },
   });
@@ -122,16 +122,16 @@ export async function getCourseForUser(userId: string, slug: string) {
   return course;
 }
 
-export async function getPackForUser(
+export async function getUnitForUser(
   userId: string,
   courseSlug: string,
-  packSlug: string,
+  unitSlug: string,
 ) {
   const course = await db.query.courses.findFirst({
     where: eq(courses.slug, courseSlug),
     with: {
-      packs: {
-        where: eq(packs.slug, packSlug),
+      units: {
+        where: eq(units.slug, unitSlug),
         with: {
           lessons: {
             where: eq(lessons.isPublished, true),
@@ -141,8 +141,8 @@ export async function getPackForUser(
       },
     },
   });
-  const pack = course?.packs[0];
-  if (!course || !pack) return null;
+  const unit = course?.units[0];
+  if (!course || !unit) return null;
 
   const enrollment = await db.query.userCourses.findFirst({
     where: and(
@@ -153,20 +153,20 @@ export async function getPackForUser(
   });
   if (!enrollment) return null;
 
-  return { course, pack };
+  return { course, unit };
 }
 
 export async function getLessonForUser(
   userId: string,
   courseSlug: string,
-  packSlug: string,
+  unitSlug: string,
   lessonSlug: string,
 ) {
   const course = await db.query.courses.findFirst({
     where: eq(courses.slug, courseSlug),
     with: {
-      packs: {
-        where: and(eq(packs.slug, packSlug), eq(packs.isPublished, true)),
+      units: {
+        where: and(eq(units.slug, unitSlug), eq(units.isPublished, true)),
         with: {
           lessons: {
             where: and(
@@ -184,9 +184,9 @@ export async function getLessonForUser(
       },
     },
   });
-  const pack = course?.packs[0];
-  const lesson = pack?.lessons[0];
-  if (!course || !pack || !lesson) return null;
+  const unit = course?.units[0];
+  const lesson = unit?.lessons[0];
+  if (!course || !unit || !lesson) return null;
 
   const enrollment = await db.query.userCourses.findFirst({
     where: and(
@@ -197,7 +197,7 @@ export async function getLessonForUser(
   });
   if (!enrollment) return null;
 
-  return { course, pack, lesson };
+  return { course, unit, lesson };
 }
 
 export async function listRecentAdminCourses(limit = 5) {
@@ -214,8 +214,8 @@ export async function listRecentAdminCourses(limit = 5) {
 export type AdminCourseStats = {
   courseCount: number;
   publishedCourseCount: number;
-  packCount: number;
-  publishedPackCount: number;
+  unitCount: number;
+  publishedUnitCount: number;
   lessonCount: number;
   publishedLessonCount: number;
 };
@@ -224,8 +224,8 @@ export async function getAdminCourseStats(): Promise<AdminCourseStats> {
   const [
     courseTotal,
     coursePublished,
-    packTotal,
-    packPublished,
+    unitTotal,
+    unitPublished,
     lessonTotal,
     lessonPublished,
   ] = await Promise.all([
@@ -234,8 +234,8 @@ export async function getAdminCourseStats(): Promise<AdminCourseStats> {
       .select({ n: count() })
       .from(courses)
       .where(eq(courses.isPublished, true)),
-    db.select({ n: count() }).from(packs),
-    db.select({ n: count() }).from(packs).where(eq(packs.isPublished, true)),
+    db.select({ n: count() }).from(units),
+    db.select({ n: count() }).from(units).where(eq(units.isPublished, true)),
     db.select({ n: count() }).from(lessons),
     db
       .select({ n: count() })
@@ -246,8 +246,8 @@ export async function getAdminCourseStats(): Promise<AdminCourseStats> {
   return {
     courseCount: courseTotal[0].n,
     publishedCourseCount: coursePublished[0].n,
-    packCount: packTotal[0].n,
-    publishedPackCount: packPublished[0].n,
+    unitCount: unitTotal[0].n,
+    publishedUnitCount: unitPublished[0].n,
     lessonCount: lessonTotal[0].n,
     publishedLessonCount: lessonPublished[0].n,
   };
@@ -259,23 +259,23 @@ export async function getAdminCourseBySlug(slug: string) {
     with: {
       baseLanguage: true,
       targetLanguage: true,
-      packs: {
-        orderBy: asc(packs.position),
+      units: {
+        orderBy: asc(units.position),
       },
     },
   });
   return course ?? null;
 }
 
-export async function getAdminPackBySlugs(
+export async function getAdminUnitBySlugs(
   courseSlug: string,
-  packSlug: string,
+  unitSlug: string,
 ) {
   const course = await db.query.courses.findFirst({
     where: eq(courses.slug, courseSlug),
     with: {
-      packs: {
-        where: eq(packs.slug, packSlug),
+      units: {
+        where: eq(units.slug, unitSlug),
         with: {
           lessons: {
             orderBy: asc(lessons.position),
@@ -284,21 +284,21 @@ export async function getAdminPackBySlugs(
       },
     },
   });
-  const pack = course?.packs[0];
-  if (!course || !pack) return null;
-  return { course, pack };
+  const unit = course?.units[0];
+  if (!course || !unit) return null;
+  return { course, unit };
 }
 
 export async function getAdminLessonBySlugs(
   courseSlug: string,
-  packSlug: string,
+  unitSlug: string,
   lessonSlug: string,
 ) {
   const course = await db.query.courses.findFirst({
     where: eq(courses.slug, courseSlug),
     with: {
-      packs: {
-        where: eq(packs.slug, packSlug),
+      units: {
+        where: eq(units.slug, unitSlug),
         with: {
           lessons: {
             where: eq(lessons.slug, lessonSlug),
@@ -312,10 +312,10 @@ export async function getAdminLessonBySlugs(
       },
     },
   });
-  const pack = course?.packs[0];
-  const lesson = pack?.lessons[0];
-  if (!course || !pack || !lesson) return null;
-  return { course, pack, lesson };
+  const unit = course?.units[0];
+  const lesson = unit?.lessons[0];
+  if (!course || !unit || !lesson) return null;
+  return { course, unit, lesson };
 }
 
 export async function createCourse(input: CreateCourseInput) {
@@ -379,7 +379,7 @@ export async function updateCourse(
   return updated;
 }
 
-export async function createPack(input: CreatePackInput) {
+export async function createUnit(input: CreateUnitInput) {
   const course = await db.query.courses.findFirst({
     where: eq(courses.id, input.courseId),
     columns: { id: true },
@@ -388,27 +388,27 @@ export async function createPack(input: CreatePackInput) {
     throw new NotFoundError("Course not found");
   }
 
-  const existing = await db.query.packs.findFirst({
+  const existing = await db.query.units.findFirst({
     where: and(
-      eq(packs.courseId, input.courseId),
-      eq(packs.slug, input.slug),
+      eq(units.courseId, input.courseId),
+      eq(units.slug, input.slug),
     ),
     columns: { id: true },
   });
   if (existing) {
     throw new ConflictError(
-      `A pack with slug "${input.slug}" already exists in this course`,
+      `A unit with slug "${input.slug}" already exists in this course`,
     );
   }
 
   const [{ maxPos }] = await db
-    .select({ maxPos: max(packs.position) })
-    .from(packs)
-    .where(eq(packs.courseId, input.courseId));
+    .select({ maxPos: max(units.position) })
+    .from(units)
+    .where(eq(units.courseId, input.courseId));
   const position = (maxPos ?? -1) + 1;
 
-  const [pack] = await db
-    .insert(packs)
+  const [unit] = await db
+    .insert(units)
     .values({
       courseId: input.courseId,
       slug: input.slug,
@@ -418,41 +418,41 @@ export async function createPack(input: CreatePackInput) {
       isFree: input.isFree,
     })
     .returning();
-  return pack;
+  return unit;
 }
 
 export async function createLesson(input: CreateLessonInput) {
-  const pack = await db.query.packs.findFirst({
-    where: eq(packs.id, input.packId),
+  const unit = await db.query.units.findFirst({
+    where: eq(units.id, input.unitId),
     columns: { id: true },
   });
-  if (!pack) {
-    throw new NotFoundError("Pack not found");
+  if (!unit) {
+    throw new NotFoundError("Unit not found");
   }
 
   const existing = await db.query.lessons.findFirst({
     where: and(
-      eq(lessons.packId, input.packId),
+      eq(lessons.unitId, input.unitId),
       eq(lessons.slug, input.slug),
     ),
     columns: { id: true },
   });
   if (existing) {
     throw new ConflictError(
-      `A lesson with slug "${input.slug}" already exists in this pack`,
+      `A lesson with slug "${input.slug}" already exists in this unit`,
     );
   }
 
   const [{ maxPos }] = await db
     .select({ maxPos: max(lessons.position) })
     .from(lessons)
-    .where(eq(lessons.packId, input.packId));
+    .where(eq(lessons.unitId, input.unitId));
   const position = (maxPos ?? -1) + 1;
 
   const [lesson] = await db
     .insert(lessons)
     .values({
-      packId: input.packId,
+      unitId: input.unitId,
       slug: input.slug,
       title: input.title,
       description: input.description,
@@ -462,12 +462,12 @@ export async function createLesson(input: CreateLessonInput) {
   return lesson;
 }
 
-export async function updatePack(
+export async function updateUnit(
   id: string,
-  input: Omit<UpdatePackInput, "id">,
+  input: Omit<UpdateUnitInput, "id">,
 ) {
   const [updated] = await db
-    .update(packs)
+    .update(units)
     .set({
       title: input.title,
       description: input.description ?? null,
@@ -475,10 +475,10 @@ export async function updatePack(
       isPublished: input.isPublished,
       isFree: input.isFree,
     })
-    .where(eq(packs.id, id))
+    .where(eq(units.id, id))
     .returning();
   if (!updated) {
-    throw new NotFoundError(`Pack ${id} not found`);
+    throw new NotFoundError(`Unit ${id} not found`);
   }
   return updated;
 }

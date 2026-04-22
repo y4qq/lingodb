@@ -60,12 +60,12 @@ async function moderate(
       });
       return { id: row.id };
     },
-    // Moderation changes public visibility, so also bump the course/pack
+    // Moderation changes public visibility, so also bump the course/unit
     // pages. Dynamic-path syntax avoids having to look up the target slug.
     onSuccess: () => {
       revalidatePath("/admin/comments", "page");
       revalidatePath("/courses/[slug]", "page");
-      revalidatePath("/courses/[slug]/[packSlug]", "page");
+      revalidatePath("/courses/[slug]/[unitSlug]", "page");
     },
   });
 }

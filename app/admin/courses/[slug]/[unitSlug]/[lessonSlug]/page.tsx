@@ -14,7 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 
 type Props = {
-  params: Promise<{ slug: string; packSlug: string; lessonSlug: string }>;
+  params: Promise<{ slug: string; unitSlug: string; lessonSlug: string }>;
 };
 
 export default function AdminLessonPage({ params }: Props) {
@@ -26,11 +26,11 @@ export default function AdminLessonPage({ params }: Props) {
 }
 
 async function Content({ params }: Props) {
-  const { slug, packSlug, lessonSlug } = await params;
-  const result = await getAdminLessonBySlugs(slug, packSlug, lessonSlug);
+  const { slug, unitSlug, lessonSlug } = await params;
+  const result = await getAdminLessonBySlugs(slug, unitSlug, lessonSlug);
   if (!result) notFound();
 
-  const { course, pack, lesson } = result;
+  const { course, unit, lesson } = result;
 
   return (
     <AudioPlayerProvider>
@@ -41,8 +41,8 @@ async function Content({ params }: Props) {
             { href: "/admin/courses", label: "Courses" },
             { href: `/admin/courses/${course.slug}`, label: course.title },
             {
-              href: `/admin/courses/${course.slug}/${pack.slug}`,
-              label: pack.title,
+              href: `/admin/courses/${course.slug}/${unit.slug}`,
+              label: unit.title,
             },
             { label: lesson.title },
           ]}

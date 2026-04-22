@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export const createPackSchema = z.object({
+export const createUnitSchema = z.object({
   courseId: z.uuid(),
   slug: z
     .string()
@@ -16,9 +16,9 @@ export const createPackSchema = z.object({
   isFree: z.coerce.boolean().default(false),
 });
 
-export type CreatePackInput = z.infer<typeof createPackSchema>;
+export type CreateUnitInput = z.infer<typeof createUnitSchema>;
 
-export const updatePackSchema = z.object({
+export const updateUnitSchema = z.object({
   id: z.uuid(),
   title: z.string().min(1, "Title is required").max(200),
   description: z
@@ -31,4 +31,4 @@ export const updatePackSchema = z.object({
   isFree: z.coerce.boolean().default(false),
 });
 
-export type UpdatePackInput = z.infer<typeof updatePackSchema>;
+export type UpdateUnitInput = z.infer<typeof updateUnitSchema>;

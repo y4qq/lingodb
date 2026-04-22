@@ -3,7 +3,7 @@
 import { useActionState, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Settings } from "lucide-react";
-import { updatePack } from "@/lib/domains/courses/actions/admin";
+import { updateUnit } from "@/lib/domains/courses/actions/admin";
 import { FormField } from "@/components/admin/form-field";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -20,7 +20,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 
-type Pack = {
+type Unit = {
   id: string;
   title: string;
   description: string | null;
@@ -29,37 +29,37 @@ type Pack = {
   isFree: boolean;
 };
 
-export function PackEditDialog({ pack }: { pack: Pack }) {
+export function UnitEditDialog({ unit }: { unit: Unit }) {
   const [open, setOpen] = useState(false);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" size="icon-sm" aria-label="Edit pack">
+        <Button variant="outline" size="icon-sm" aria-label="Edit unit">
           <Settings />
         </Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Edit pack</DialogTitle>
+          <DialogTitle>Edit unit</DialogTitle>
           <DialogDescription>
-            Update this pack&apos;s settings. Slug cannot be changed.
+            Update this unit&apos;s settings. Slug cannot be changed.
           </DialogDescription>
         </DialogHeader>
-        <EditPackForm pack={pack} onClose={() => setOpen(false)} />
+        <EditUnitForm unit={unit} onClose={() => setOpen(false)} />
       </DialogContent>
     </Dialog>
   );
 }
 
-function EditPackForm({
-  pack,
+function EditUnitForm({
+  unit,
   onClose,
 }: {
-  pack: Pack;
+  unit: Unit;
   onClose: () => void;
 }) {
-  const [state, action, isPending] = useActionState(updatePack, undefined);
+  const [state, action, isPending] = useActionState(updateUnit, undefined);
   const router = useRouter();
 
   useEffect(() => {
@@ -74,13 +74,13 @@ function EditPackForm({
 
   return (
     <form action={action} className="flex flex-col gap-4">
-      <input type="hidden" name="id" value={pack.id} />
+      <input type="hidden" name="id" value={unit.id} />
 
       <FormField id="title" label="Title" error={fieldErrors?.title?.[0]}>
         <Input
           id="title"
           name="title"
-          defaultValue={pack.title}
+          defaultValue={unit.title}
           required
         />
       </FormField>
@@ -95,7 +95,7 @@ function EditPackForm({
           id="description"
           name="description"
           rows={3}
-          defaultValue={pack.description ?? ""}
+          defaultValue={unit.description ?? ""}
         />
       </FormField>
 
@@ -111,7 +111,7 @@ function EditPackForm({
           type="number"
           min={0}
           step={1}
-          defaultValue={pack.position}
+          defaultValue={unit.position}
           required
         />
       </FormField>
@@ -121,7 +121,7 @@ function EditPackForm({
           <Checkbox
             id="isPublished"
             name="isPublished"
-            defaultChecked={pack.isPublished}
+            defaultChecked={unit.isPublished}
           />
           <Label htmlFor="isPublished" className="cursor-pointer">
             Published
@@ -131,7 +131,7 @@ function EditPackForm({
           <Checkbox
             id="isFree"
             name="isFree"
-            defaultChecked={pack.isFree}
+            defaultChecked={unit.isFree}
           />
           <Label htmlFor="isFree" className="cursor-pointer">
             Free

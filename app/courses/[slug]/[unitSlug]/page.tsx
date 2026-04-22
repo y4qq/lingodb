@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
-import { getPackCommentsForMe } from "@/lib/domains/comments/queries/public";
-import { getMyPackBySlugs } from "@/lib/domains/courses/queries/public";
+import { getUnitCommentsForMe } from "@/lib/domains/comments/queries/public";
+import { getMyUnitBySlugs } from "@/lib/domains/courses/queries/public";
 import { CommentsPanel } from "@/components/app/comments-panel";
 import { PageHeader } from "@/components/common/page-header";
 import { PageHeaderSkeleton } from "@/components/common/page-header-skeleton";
@@ -9,11 +9,11 @@ import { DataTable, type Column } from "@/components/common/data-table";
 import { Skeleton } from "@/components/ui/skeleton";
 
 type Props = {
-  params: Promise<{ slug: string; packSlug: string }>;
+  params: Promise<{ slug: string; unitSlug: string }>;
 };
 
-type PackResult = NonNullable<Awaited<ReturnType<typeof getMyPackBySlugs>>>;
-type LessonRow = PackResult["pack"]["lessons"][number];
+type UnitResult = NonNullable<Awaited<ReturnType<typeof getMyUnitBySlugs>>>;
+type LessonRow = UnitResult["unit"]["lessons"][number];
 
 const lessonColumns: Column<LessonRow>[] = [
   {
@@ -35,7 +35,7 @@ const lessonColumns: Column<LessonRow>[] = [
   },
 ];
 
-export default function PackPage({ params }: Props) {
+export default function UnitPage({ params }: Props) {
   return (
     <Suspense fallback={<Fallback />}>
       <Content params={params} />
@@ -44,38 +44,36 @@ export default function PackPage({ params }: Props) {
 }
 
 async function Content({ params }: Props) {
-  const { slug, packSlug } = await params;
-  const result = await getMyPackBySlugs(slug, packSlug);
+  const { slug, unitSlug } = await params;
+  const result = await getMyUnitBySlugs(slug, unitSlug);
   if (!result) notFound();
 
-  const { course, pack } = result;
-  const { comments, currentUserId } = await getPackCommentsForMe(pack.id);
+  const { course, unit } = result;
+  const { comments, currentUserId } = await getUnitCommentsForMe(unit.id);
 
   return (
     <>
       <PageHeader
         breadcrumbs={[
-          { href: "/courses", label: "Courses" },
-          { href: `/courses/${course.slug}`, label: course.title },
-          { label: pack.title },
+          { href: `/courses/${course.slug}`, label: "Units" },
         ]}
-        title={pack.title}
-        description={pack.description ?? undefined}
+        title={unit.title}
+        description={unit.description ?? undefined}
       />
 
       <section className="flex flex-col gap-4">
         <h2 className="text-lg font-medium">Lessons</h2>
         <DataTable
           columns={lessonColumns}
-          data={pack.lessons}
+          data={unit.lessons}
           rowKey={(l) => l.id}
-          rowHref={(l) => `/courses/${course.slug}/${pack.slug}/${l.slug}`}
+          rowHref={(l) => `/courses/${course.slug}/${unit.slug}/${l.slug}`}
           empty="No lessons yet."
         />
       </section>
 
       <CommentsPanel
-        target={{ kind: "pack", packId: pack.id }}
+        target={{ kind: "unit", unitId: unit.id }}
         initialComments={comments}
         currentUserId={currentUserId}
       />

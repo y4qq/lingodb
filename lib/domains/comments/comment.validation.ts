@@ -13,13 +13,13 @@ export const submitCourseCommentSchema = z.object({
   body: submitCommentBodySchema,
 });
 
-export const submitPackCommentSchema = z.object({
-  packId: z.uuid(),
+export const submitUnitCommentSchema = z.object({
+  unitId: z.uuid(),
   body: submitCommentBodySchema,
 });
 
 export type SubmitCourseCommentInput = z.infer<typeof submitCourseCommentSchema>;
-export type SubmitPackCommentInput = z.infer<typeof submitPackCommentSchema>;
+export type SubmitUnitCommentInput = z.infer<typeof submitUnitCommentSchema>;
 
 export const submitReplySchema = z.object({
   parentCommentId: z.uuid(),

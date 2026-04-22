@@ -84,9 +84,9 @@ async function StatsGrid() {
         icon={<Library />}
       />
       <StatCard
-        label="Packs"
-        value={stats.packCount}
-        hint={`${stats.publishedPackCount} published`}
+        label="Units"
+        value={stats.unitCount}
+        hint={`${stats.publishedUnitCount} published`}
         icon={<Layers />}
       />
       <StatCard

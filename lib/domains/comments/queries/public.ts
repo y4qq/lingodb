@@ -4,7 +4,7 @@ import {
   listMyReactions,
   listReactionCounts,
   listVisibleCourseComments,
-  listVisiblePackComments,
+  listVisibleUnitComments,
   listVisibleRepliesForParents,
   type CommentWithAuthor,
 } from "../comment.service";
@@ -27,9 +27,9 @@ export async function getCourseCommentsForMe(courseId: string) {
   return { comments: tree, currentUserId: user.id };
 }
 
-export async function getPackCommentsForMe(packId: string) {
+export async function getUnitCommentsForMe(unitId: string) {
   const user = await requireUser();
-  const topLevel = await listVisiblePackComments(packId, user.id);
+  const topLevel = await listVisibleUnitComments(unitId, user.id);
   const tree = await buildThreadedTree(topLevel, user.id);
   return { comments: tree, currentUserId: user.id };
 }

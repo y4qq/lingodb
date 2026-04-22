@@ -35,7 +35,7 @@ export function AppSidebar({ userEmail, userName, enrollments }: Props) {
   const activeSlug = slugMatch?.[1] ?? enrollments[0]?.slug ?? null;
 
   return (
-    <Sidebar>
+    <Sidebar variant="floating">
       <SidebarHeader>
         <div className="flex items-center">
           <span className="px-2 text-sm font-semibold tracking-tight">

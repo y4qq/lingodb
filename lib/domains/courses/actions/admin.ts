@@ -20,10 +20,10 @@ import {
 import * as courses from "../course.service";
 import { createCourseSchema, updateCourseSchema } from "../course.validation";
 import { createLessonSchema } from "../lesson.validation";
-import { createPackSchema, updatePackSchema } from "../pack.validation";
+import { createUnitSchema, updateUnitSchema } from "../unit.validation";
 
 const ADMIN_COURSES_ROUTE = "/admin/courses";
-const ADMIN_LESSON_ROUTE = "/admin/courses/[slug]/[packSlug]/[lessonSlug]";
+const ADMIN_LESSON_ROUTE = "/admin/courses/[slug]/[unitSlug]/[lessonSlug]";
 const GENERIC_ERROR_MESSAGE = "Something went wrong. Please try again.";
 
 export type ActionResult<T> =
@@ -74,20 +74,20 @@ export async function updateCourse(
   });
 }
 
-export async function createPack(
+export async function createUnit(
   _prev: ActionResult<{ id: string; slug: string }> | undefined,
   formData: FormData,
 ): Promise<ActionResult<{ id: string; slug: string }>> {
-  const parsed = createPackSchema.safeParse(Object.fromEntries(formData));
+  const parsed = createUnitSchema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) {
     return { ok: false, fieldErrors: toFieldErrors(parsed.error) };
   }
 
   return runAdminAction({
-    actionName: "createPack",
+    actionName: "createUnit",
     execute: async () => {
-      const pack = await courses.createPack(parsed.data);
-      return { id: pack.id, slug: pack.slug };
+      const unit = await courses.createUnit(parsed.data);
+      return { id: unit.id, slug: unit.slug };
     },
     onSuccess: () => revalidatePath("/admin", "layout"),
     extra: { input: parsed.data },
@@ -114,23 +114,23 @@ export async function createLesson(
   });
 }
 
-export async function updatePack(
+export async function updateUnit(
   _prev: ActionResult<{ id: string }> | undefined,
   formData: FormData,
 ): Promise<ActionResult<{ id: string }>> {
-  const parsed = updatePackSchema.safeParse(Object.fromEntries(formData));
+  const parsed = updateUnitSchema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) {
     return { ok: false, fieldErrors: toFieldErrors(parsed.error) };
   }
 
   return runAdminAction({
-    actionName: "updatePack",
+    actionName: "updateUnit",
     execute: async () => {
       const { id, ...updates } = parsed.data;
-      const pack = await courses.updatePack(id, updates);
-      return { id: pack.id };
+      const unit = await courses.updateUnit(id, updates);
+      return { id: unit.id };
     },
-    // Broad revalidate: pack paths depend on the parent course slug, which we
+    // Broad revalidate: unit paths depend on the parent course slug, which we
     // don't have without another lookup. All admin pages re-fetch on next nav.
     onSuccess: () => revalidatePath("/admin", "layout"),
     extra: { input: parsed.data },

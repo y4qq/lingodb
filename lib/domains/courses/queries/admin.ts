@@ -7,7 +7,7 @@ import {
   getAdminCourseBySlug as getAdminCourseBySlugRow,
   getAdminCourseStats as getAdminCourseStatsRow,
   getAdminLessonBySlugs as getAdminLessonBySlugsRow,
-  getAdminPackBySlugs as getAdminPackBySlugsRow,
+  getAdminUnitBySlugs as getAdminUnitBySlugsRow,
   listAdminCourses as listAdminCoursesRows,
   listAdminCoursesWithEnrollments as listAdminCoursesWithEnrollmentsRows,
   listRecentAdminCourses as listRecentAdminCoursesRows,
@@ -44,12 +44,12 @@ export async function getAdminCourseBySlug(slug: string) {
   return getAdminCourseBySlugRow(slug);
 }
 
-export async function getAdminPackBySlugs(
+export async function getAdminUnitBySlugs(
   courseSlug: string,
-  packSlug: string,
+  unitSlug: string,
 ) {
   await requireAdmin();
-  return getAdminPackBySlugsRow(courseSlug, packSlug);
+  return getAdminUnitBySlugsRow(courseSlug, unitSlug);
 }
 
 // Returns the lesson plus each audio version enriched with a short-lived
@@ -58,13 +58,13 @@ export async function getAdminPackBySlugs(
 // browser client.
 export async function getAdminLessonBySlugs(
   courseSlug: string,
-  packSlug: string,
+  unitSlug: string,
   lessonSlug: string,
 ) {
   await requireAdmin();
   const row = await getAdminLessonBySlugsRow(
     courseSlug,
-    packSlug,
+    unitSlug,
     lessonSlug,
   );
   if (!row) return null;
@@ -101,7 +101,7 @@ export async function getAdminLessonBySlugs(
 
   return {
     course: row.course,
-    pack: row.pack,
+    unit: row.unit,
     lesson: {
       ...row.lesson,
       audioVersions: versionsWithUrls,

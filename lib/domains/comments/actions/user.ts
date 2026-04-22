@@ -13,7 +13,7 @@ import * as commentService from "../comment.service";
 import {
   deleteCommentSchema,
   submitCourseCommentSchema,
-  submitPackCommentSchema,
+  submitUnitCommentSchema,
   submitReplySchema,
   toggleReactionSchema,
   type ReactionValue,
@@ -53,11 +53,11 @@ export async function submitCourseComment(
   });
 }
 
-export async function submitPackComment(
+export async function submitUnitComment(
   _prev: ActionResult<{ id: string }> | undefined,
   formData: FormData,
 ): Promise<ActionResult<{ id: string }>> {
-  const parsed = submitPackCommentSchema.safeParse(
+  const parsed = submitUnitCommentSchema.safeParse(
     Object.fromEntries(formData),
   );
   if (!parsed.success) {
@@ -65,16 +65,16 @@ export async function submitPackComment(
   }
 
   return runUserAction({
-    actionName: "submitPackComment",
-    extra: { packId: parsed.data.packId },
+    actionName: "submitUnitComment",
+    extra: { unitId: parsed.data.unitId },
     execute: async (userId) => {
-      const row = await commentService.insertPackComment({
+      const row = await commentService.insertUnitComment({
         ...parsed.data,
         authorId: userId,
       });
       return { id: row.id };
     },
-    onSuccess: () => revalidatePath("/courses/[slug]/[packSlug]", "page"),
+    onSuccess: () => revalidatePath("/courses/[slug]/[unitSlug]", "page"),
   });
 }
 
@@ -100,7 +100,7 @@ export async function submitReply(
     // Parent could be on either route; revalidate both dynamic paths.
     onSuccess: () => {
       revalidatePath("/courses/[slug]", "page");
-      revalidatePath("/courses/[slug]/[packSlug]", "page");
+      revalidatePath("/courses/[slug]/[unitSlug]", "page");
     },
   });
 }
@@ -173,7 +173,7 @@ export async function deleteOwnComment(
     // The deleted comment could be on either route; revalidate both.
     onSuccess: () => {
       revalidatePath("/courses/[slug]", "page");
-      revalidatePath("/courses/[slug]/[packSlug]", "page");
+      revalidatePath("/courses/[slug]/[unitSlug]", "page");
     },
   });
 }

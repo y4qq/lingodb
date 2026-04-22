@@ -8,7 +8,7 @@ import {
   lessonDependencies,
   lessonTags,
   lessons,
-  packs,
+  units,
   tags,
   userCourses,
   users,
@@ -52,15 +52,15 @@ export const coursesRelations = relations(courses, ({ one, many }) => ({
     references: [languages.id],
     relationName: "courses_target_language",
   }),
-  packs: many(packs),
+  units: many(units),
   comments: many(comments),
   enrollments: many(userCourses),
   activeForUsers: many(users, { relationName: "users_active_course" }),
 }));
 
-export const packsRelations = relations(packs, ({ one, many }) => ({
+export const unitsRelations = relations(units, ({ one, many }) => ({
   course: one(courses, {
-    fields: [packs.courseId],
+    fields: [units.courseId],
     references: [courses.id],
   }),
   lessons: many(lessons),
@@ -69,9 +69,9 @@ export const packsRelations = relations(packs, ({ one, many }) => ({
 }));
 
 export const lessonsRelations = relations(lessons, ({ one, many }) => ({
-  pack: one(packs, {
-    fields: [lessons.packId],
-    references: [packs.id],
+  unit: one(units, {
+    fields: [lessons.unitId],
+    references: [units.id],
   }),
   audioVersions: many(lessonAudioVersions),
   tags: many(lessonTags),
@@ -107,9 +107,9 @@ export const lessonDependenciesRelations = relations(lessonDependencies, ({ one 
     fields: [lessonDependencies.lessonId],
     references: [lessons.id],
   }),
-  requiredPack: one(packs, {
-    fields: [lessonDependencies.requiredPackId],
-    references: [packs.id],
+  requiredUnit: one(units, {
+    fields: [lessonDependencies.requiredUnitId],
+    references: [units.id],
   }),
 }));
 
@@ -134,9 +134,9 @@ export const commentsRelations = relations(comments, ({ one, many }) => ({
     fields: [comments.courseId],
     references: [courses.id],
   }),
-  pack: one(packs, {
-    fields: [comments.packId],
-    references: [packs.id],
+  unit: one(units, {
+    fields: [comments.unitId],
+    references: [units.id],
   }),
   lesson: one(lessons, {
     fields: [comments.lessonId],

@@ -74,7 +74,7 @@ export const courses = pgTable('courses', {
 
 // Deferrable unique `(course_id, position)` is added in the companion migration
 // to support transactional reordering.
-export const packs = pgTable('packs', {
+export const units = pgTable('units', {
   id: uuid('id').primaryKey().defaultRandom(),
   courseId: uuid('course_id').notNull().references(() => courses.id, { onDelete: 'cascade' }),
   slug: text('slug').notNull(),
@@ -85,14 +85,14 @@ export const packs = pgTable('packs', {
   isFree: boolean('is_free').notNull().default(true),
   ...timestamps,
 }, (t) => [
-  unique('packs_course_slug_key').on(t.courseId, t.slug),
-  index('packs_course_position_idx').on(t.courseId, t.position),
+  unique('units_course_slug_key').on(t.courseId, t.slug),
+  index('units_course_position_idx').on(t.courseId, t.position),
 ]).enableRLS();
 
-// Deferrable unique `(pack_id, position)` is added in the companion migration.
+// Deferrable unique `(unit_id, position)` is added in the companion migration.
 export const lessons = pgTable('lessons', {
   id: uuid('id').primaryKey().defaultRandom(),
-  packId: uuid('pack_id').notNull().references(() => packs.id, { onDelete: 'cascade' }),
+  unitId: uuid('unit_id').notNull().references(() => units.id, { onDelete: 'cascade' }),
   slug: text('slug').notNull(),
   title: text('title').notNull(),
   description: text('description'),
@@ -100,8 +100,8 @@ export const lessons = pgTable('lessons', {
   isPublished: boolean('is_published').notNull().default(false),
   ...timestamps,
 }, (t) => [
-  unique('lessons_pack_slug_key').on(t.packId, t.slug),
-  index('lessons_pack_position_idx').on(t.packId, t.position),
+  unique('lessons_unit_slug_key').on(t.unitId, t.slug),
+  index('lessons_unit_position_idx').on(t.unitId, t.position),
 ]).enableRLS();
 
 export const lessonAudioVersions = pgTable('lesson_audio_versions', {
@@ -146,11 +146,11 @@ export const lessonTags = pgTable('lesson_tags', {
 
 export const lessonDependencies = pgTable('lesson_dependencies', {
   lessonId: uuid('lesson_id').notNull().references(() => lessons.id, { onDelete: 'cascade' }),
-  requiredPackId: uuid('required_pack_id').notNull().references(() => packs.id, { onDelete: 'cascade' }),
+  requiredUnitId: uuid('required_unit_id').notNull().references(() => units.id, { onDelete: 'cascade' }),
   ...timestamps,
 }, (t) => [
-  primaryKey({ columns: [t.lessonId, t.requiredPackId], name: 'lesson_dependencies_pkey' }),
-  index('lesson_dependencies_required_pack_id_idx').on(t.requiredPackId),
+  primaryKey({ columns: [t.lessonId, t.requiredUnitId], name: 'lesson_dependencies_pkey' }),
+  index('lesson_dependencies_required_unit_id_idx').on(t.requiredUnitId),
 ]).enableRLS();
 
 export const comments = pgTable('comments', {
@@ -158,7 +158,7 @@ export const comments = pgTable('comments', {
   authorId: uuid('author_id').notNull().references(() => users.id),
   parentCommentId: uuid('parent_comment_id').references((): AnyPgColumn => comments.id, { onDelete: 'cascade' }),
   courseId: uuid('course_id').references(() => courses.id),
-  packId: uuid('pack_id').references(() => packs.id),
+  unitId: uuid('unit_id').references(() => units.id),
   lessonId: uuid('lesson_id').references(() => lessons.id),
   audioVersionId: uuid('audio_version_id').references(() => lessonAudioVersions.id, { onDelete: 'cascade' }),
   timepointSeconds: integer('timepoint_seconds'),
@@ -174,12 +174,12 @@ export const comments = pgTable('comments', {
     'comments_target_integrity_check',
     sql`
       (${t.parentCommentId} IS NULL
-        AND num_nonnulls(${t.courseId}, ${t.packId}, ${t.lessonId}) = 1
+        AND num_nonnulls(${t.courseId}, ${t.unitId}, ${t.lessonId}) = 1
         AND (${t.audioVersionId} IS NOT NULL) = (${t.lessonId} IS NOT NULL)
         AND (${t.timepointSeconds} IS NULL OR ${t.lessonId} IS NOT NULL))
       OR
       (${t.parentCommentId} IS NOT NULL
-        AND ${t.courseId} IS NULL AND ${t.packId} IS NULL AND ${t.lessonId} IS NULL
+        AND ${t.courseId} IS NULL AND ${t.unitId} IS NULL AND ${t.lessonId} IS NULL
         AND ${t.audioVersionId} IS NULL AND ${t.timepointSeconds} IS NULL)
     `,
   ),
@@ -191,7 +191,7 @@ export const comments = pgTable('comments', {
     .where(sql`${t.parentCommentId} IS NULL`),
   index('comments_parent_comment_id_idx').on(t.parentCommentId),
   index('comments_course_id_idx').on(t.courseId),
-  index('comments_pack_id_idx').on(t.packId),
+  index('comments_unit_id_idx').on(t.unitId),
 ]).enableRLS();
 
 export const commentReactions = pgTable('comment_reactions', {

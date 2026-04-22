@@ -17,12 +17,12 @@ import {
   commentReactions,
   comments,
   courses,
-  packs,
+  units,
 } from "@/supabase/schema";
 import type {
   ReactionValue,
   SubmitCourseCommentInput,
-  SubmitPackCommentInput,
+  SubmitUnitCommentInput,
   SubmitReplyInput,
 } from "./comment.validation";
 
@@ -63,13 +63,13 @@ export async function listVisibleCourseComments(
   });
 }
 
-export async function listVisiblePackComments(
-  packId: string,
+export async function listVisibleUnitComments(
+  unitId: string,
   currentUserId: string,
 ) {
   return db.query.comments.findMany({
     where: and(
-      eq(comments.packId, packId),
+      eq(comments.unitId, unitId),
       isNull(comments.parentCommentId),
       visibilityFilter(currentUserId),
     ),
@@ -123,22 +123,22 @@ export async function insertCourseComment(
   return row;
 }
 
-export async function insertPackComment(
-  input: SubmitPackCommentInput & { authorId: string },
+export async function insertUnitComment(
+  input: SubmitUnitCommentInput & { authorId: string },
 ) {
-  const pack = await db.query.packs.findFirst({
-    where: eq(packs.id, input.packId),
+  const unit = await db.query.units.findFirst({
+    where: eq(units.id, input.unitId),
     columns: { id: true },
   });
-  if (!pack) {
-    throw new NotFoundError("Pack not found");
+  if (!unit) {
+    throw new NotFoundError("Unit not found");
   }
 
   const [row] = await db
     .insert(comments)
     .values({
       authorId: input.authorId,
-      packId: input.packId,
+      unitId: input.unitId,
       body: input.body,
     })
     .returning({ id: comments.id });
@@ -342,7 +342,7 @@ export type ModerationFilter = {
 
 // Single flat list of comments for the admin moderation surface. Top-level
 // and replies are interleaved; the row carries enough joined context (author,
-// direct course/pack, plus parent → course/pack for replies) that the UI can
+// direct course/unit, plus parent → course/unit for replies) that the UI can
 // render each row's target without a second query.
 export async function listCommentsForModeration(filter: ModerationFilter) {
   return db.query.comments.findMany({
@@ -358,17 +358,17 @@ export async function listCommentsForModeration(filter: ModerationFilter) {
     with: {
       author: { columns: { id: true, displayName: true, email: true } },
       course: { columns: { slug: true, title: true } },
-      pack: {
+      unit: {
         columns: { slug: true, title: true },
         with: {
           course: { columns: { slug: true, title: true } },
         },
       },
       parent: {
-        columns: { id: true, body: true, courseId: true, packId: true },
+        columns: { id: true, body: true, courseId: true, unitId: true },
         with: {
           course: { columns: { slug: true, title: true } },
-          pack: {
+          unit: {
             columns: { slug: true, title: true },
             with: {
               course: { columns: { slug: true, title: true } },
