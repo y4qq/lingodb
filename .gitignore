@@ -17,6 +17,9 @@
 /.next/
 /out/
 
+# Copied from react-flagpack-react-19 by the postinstall script.
+/public/flags/
+
 # production
 /build
 

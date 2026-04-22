@@ -12,9 +12,14 @@ export default async function OnboardingPage() {
       courses={courses.map((c) => ({
         id: c.id,
         title: c.title,
-        description: c.description,
-        baseLanguage: { name: c.baseLanguage.name },
-        targetLanguage: { name: c.targetLanguage.name },
+        baseLanguage: {
+          id: c.baseLanguage.id,
+          name: c.baseLanguage.name,
+        },
+        targetLanguage: {
+          code: c.targetLanguage.code,
+          name: c.targetLanguage.name,
+        },
       }))}
     />
   );

@@ -13,18 +13,17 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
 import {
+  CourseCatalogGroups,
+  type CatalogCourse,
+} from "@/components/app/course-catalog-groups";
+import { LanguageCourseCard } from "@/components/app/language-course-card";
+import {
   completeOnboarding,
   setMyDisplayName,
 } from "@/lib/domains/users/actions/user";
 import { cn } from "@/lib/utils";
 
-type Course = {
-  id: string;
-  title: string;
-  description: string | null;
-  baseLanguage: { name: string };
-  targetLanguage: { name: string };
-};
+type Course = CatalogCourse;
 
 type Props = {
   initialDisplayName: string | null;
@@ -87,7 +86,12 @@ export function OnboardingFlow({ initialDisplayName, courses }: Props) {
       </header>
 
       <main className="flex flex-1 items-center justify-center p-6">
-        <div className="w-full max-w-2xl">
+        <div
+          className={cn(
+            "w-full",
+            step === 1 ? "max-w-lg" : "max-w-4xl",
+          )}
+        >
           {step === 1 ? (
             <StepName
               name={name}
@@ -207,7 +211,7 @@ function StepCourse({
   error: string | null;
 }) {
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-8">
       <div className="flex flex-col gap-1 text-center">
         <h1 className="text-2xl font-semibold tracking-tight">
           Pick your first course
@@ -216,55 +220,27 @@ function StepCourse({
           You can enroll in more courses later from the sidebar.
         </p>
       </div>
-      {courses.length === 0 ? (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">No courses available yet</CardTitle>
-            <CardDescription>
-              Please check back soon — new courses are on the way.
-            </CardDescription>
-          </CardHeader>
-        </Card>
-      ) : (
-        <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-          {courses.map((course) => {
-            const selected = course.id === selectedCourseId;
-            return (
-              <button
-                key={course.id}
-                type="button"
-                onClick={() => onSelect(course.id)}
-                aria-pressed={selected}
-                className={cn(
-                  "text-left transition-colors focus-visible:outline-hidden",
-                  "rounded-xl focus-visible:ring-2 focus-visible:ring-ring/50",
-                )}
-              >
-                <Card
-                  className={cn(
-                    "h-full gap-2 transition-colors",
-                    selected
-                      ? "border-primary ring-2 ring-primary/40"
-                      : "hover:border-foreground/20",
-                  )}
-                >
-                  <CardHeader>
-                    <CardTitle className="text-base">{course.title}</CardTitle>
-                    <CardDescription>
-                      {course.baseLanguage.name} → {course.targetLanguage.name}
-                    </CardDescription>
-                  </CardHeader>
-                  {course.description && (
-                    <CardContent className="text-muted-foreground text-sm">
-                      {course.description}
-                    </CardContent>
-                  )}
-                </Card>
-              </button>
-            );
-          })}
-        </div>
-      )}
+      <CourseCatalogGroups
+        courses={courses}
+        renderCard={(course) => (
+          <LanguageCourseCard
+            key={course.id}
+            course={course}
+            selected={course.id === selectedCourseId}
+            onClick={() => onSelect(course.id)}
+          />
+        )}
+        emptyState={
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">No courses available yet</CardTitle>
+              <CardDescription>
+                Please check back soon — new courses are on the way.
+              </CardDescription>
+            </CardHeader>
+          </Card>
+        }
+      />
       {error && <p className="text-destructive text-center text-xs">{error}</p>}
     </div>
   );

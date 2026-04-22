@@ -53,6 +53,12 @@ do $$
 declare
   lang_en          uuid := '33333333-3333-4333-8333-333333333301';
   lang_th          uuid := '33333333-3333-4333-8333-333333333302';
+  lang_es          uuid := '33333333-3333-4333-8333-333333333303';
+  lang_fr          uuid := '33333333-3333-4333-8333-333333333304';
+  lang_ja          uuid := '33333333-3333-4333-8333-333333333305';
+  lang_de          uuid := '33333333-3333-4333-8333-333333333306';
+  lang_it          uuid := '33333333-3333-4333-8333-333333333307';
+  lang_pt          uuid := '33333333-3333-4333-8333-333333333308';
   course_id        uuid := '44444444-4444-4444-8444-444444444401';
   pack_id          uuid := '55555555-5555-4555-8555-555555555501';
   lesson_id        uuid := '66666666-6666-4666-8666-666666666601';
@@ -60,14 +66,40 @@ declare
 begin
   insert into public.languages (id, code, name) values
     (lang_en, 'en', 'English'),
-    (lang_th, 'th', 'Thai');
+    (lang_th, 'th', 'Thai'),
+    (lang_es, 'es', 'Spanish'),
+    (lang_fr, 'fr', 'French'),
+    (lang_ja, 'ja', 'Japanese'),
+    (lang_de, 'de', 'German'),
+    (lang_it, 'it', 'Italian'),
+    (lang_pt, 'pt', 'Portuguese');
 
   insert into public.courses
     (id, base_language_id, target_language_id, slug, title, description,
      is_published)
   values
+    -- Original Thai course kept so downstream seed rows (pack, lesson,
+    -- audio) still reference it.
     (course_id, lang_en, lang_th, 'thai-for-english-speakers',
-     'Thai for English Speakers', 'Seed course for local dev.', true);
+     'Thai for English Speakers', 'Seed course for local dev.', true),
+    -- Courses for English speakers.
+    ('44444444-4444-4444-8444-444444444402', lang_en, lang_es,
+     'spanish-for-english-speakers',  'Spanish for English Speakers',  null, true),
+    ('44444444-4444-4444-8444-444444444403', lang_en, lang_fr,
+     'french-for-english-speakers',   'French for English Speakers',   null, true),
+    ('44444444-4444-4444-8444-444444444404', lang_en, lang_ja,
+     'japanese-for-english-speakers', 'Japanese for English Speakers', null, true),
+    ('44444444-4444-4444-8444-444444444405', lang_en, lang_de,
+     'german-for-english-speakers',   'German for English Speakers',   null, true),
+    -- Courses for Spanish speakers.
+    ('44444444-4444-4444-8444-444444444406', lang_es, lang_en,
+     'english-for-spanish-speakers',    'English for Spanish Speakers',    null, true),
+    ('44444444-4444-4444-8444-444444444407', lang_es, lang_it,
+     'italian-for-spanish-speakers',    'Italian for Spanish Speakers',    null, true),
+    ('44444444-4444-4444-8444-444444444408', lang_es, lang_pt,
+     'portuguese-for-spanish-speakers', 'Portuguese for Spanish Speakers', null, true),
+    ('44444444-4444-4444-8444-444444444409', lang_es, lang_fr,
+     'french-for-spanish-speakers',     'French for Spanish Speakers',     null, true);
 
   insert into public.packs
     (id, course_id, slug, title, description, position, is_published)
