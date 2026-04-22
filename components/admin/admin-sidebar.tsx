@@ -3,7 +3,12 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ArrowLeftFromLine, BookOpen, LayoutDashboard } from "lucide-react";
+import {
+  ArrowLeftFromLine,
+  BookOpen,
+  LayoutDashboard,
+  MessageSquare,
+} from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -38,6 +43,12 @@ const navItems: NavItem[] = [
     href: "/admin/courses",
     icon: <BookOpen />,
     matches: (p) => p === "/admin/courses" || p.startsWith("/admin/courses/"),
+  },
+  {
+    label: "Comments",
+    href: "/admin/comments",
+    icon: <MessageSquare />,
+    matches: (p) => p === "/admin/comments" || p.startsWith("/admin/comments/"),
   },
 ];
 

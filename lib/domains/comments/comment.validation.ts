@@ -43,3 +43,9 @@ export const deleteCommentSchema = z.object({
 });
 
 export type DeleteCommentInput = z.infer<typeof deleteCommentSchema>;
+
+export const moderateCommentSchema = z.object({
+  commentId: z.uuid(),
+});
+
+export type ModerateCommentInput = z.infer<typeof moderateCommentSchema>;

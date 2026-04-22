@@ -1,5 +1,16 @@
 import "server-only";
-import { and, asc, eq, inArray, isNull, or, sql } from "drizzle-orm";
+import {
+  and,
+  asc,
+  count,
+  desc,
+  eq,
+  inArray,
+  isNotNull,
+  isNull,
+  or,
+  sql,
+} from "drizzle-orm";
 import { db } from "@/lib/db";
 import { NotFoundError, ValidationError } from "@/lib/errors";
 import {
@@ -297,9 +308,6 @@ export async function getReactionSnapshot(commentId: string, userId: string) {
   };
 }
 
-// Soft-deletes a comment authored by the given user, plus every direct
-// reply (1-level threading means that's the full subtree). Keeps the rows
-// in the DB so admins can still inspect them.
 export async function softDeleteComment(input: {
   commentId: string;
   userId: string;
@@ -319,14 +327,134 @@ export async function softDeleteComment(input: {
     return;
   }
 
-  const now = new Date();
   await db
     .update(comments)
-    .set({ deletedAt: now })
-    .where(
-      or(
-        eq(comments.id, input.commentId),
-        eq(comments.parentCommentId, input.commentId),
+    .set({ deletedAt: new Date() })
+    .where(eq(comments.id, input.commentId));
+}
+
+export type ModerationFilter = {
+  // Absent = any moderation bucket. The Deleted tab passes `deleted: true`
+  // and ignores status; the other tabs pass a specific status + deleted=false.
+  status?: "pending" | "approved" | "rejected";
+  deleted?: boolean;
+};
+
+// Single flat list of comments for the admin moderation surface. Top-level
+// and replies are interleaved; the row carries enough joined context (author,
+// direct course/pack, plus parent → course/pack for replies) that the UI can
+// render each row's target without a second query.
+export async function listCommentsForModeration(filter: ModerationFilter) {
+  return db.query.comments.findMany({
+    where: and(
+      filter.status ? eq(comments.moderationStatus, filter.status) : undefined,
+      filter.deleted === true
+        ? isNotNull(comments.deletedAt)
+        : filter.deleted === false
+          ? isNull(comments.deletedAt)
+          : undefined,
+    ),
+    orderBy: desc(comments.createdAt),
+    with: {
+      author: { columns: { id: true, displayName: true, email: true } },
+      course: { columns: { slug: true, title: true } },
+      pack: {
+        columns: { slug: true, title: true },
+        with: {
+          course: { columns: { slug: true, title: true } },
+        },
+      },
+      parent: {
+        columns: { id: true, body: true, courseId: true, packId: true },
+        with: {
+          course: { columns: { slug: true, title: true } },
+          pack: {
+            columns: { slug: true, title: true },
+            with: {
+              course: { columns: { slug: true, title: true } },
+            },
+          },
+        },
+      },
+    },
+  });
+}
+
+export type ModerationCounts = {
+  pending: number;
+  approved: number;
+  rejected: number;
+  deleted: number;
+};
+
+export async function getModerationCounts(): Promise<ModerationCounts> {
+  const [pending, approved, rejected, deleted] = await Promise.all([
+    db
+      .select({ n: count() })
+      .from(comments)
+      .where(
+        and(
+          eq(comments.moderationStatus, "pending"),
+          isNull(comments.deletedAt),
+        ),
       ),
-    );
+    db
+      .select({ n: count() })
+      .from(comments)
+      .where(
+        and(
+          eq(comments.moderationStatus, "approved"),
+          isNull(comments.deletedAt),
+        ),
+      ),
+    db
+      .select({ n: count() })
+      .from(comments)
+      .where(
+        and(
+          eq(comments.moderationStatus, "rejected"),
+          isNull(comments.deletedAt),
+        ),
+      ),
+    db
+      .select({ n: count() })
+      .from(comments)
+      .where(isNotNull(comments.deletedAt)),
+  ]);
+
+  return {
+    pending: pending[0]?.n ?? 0,
+    approved: approved[0]?.n ?? 0,
+    rejected: rejected[0]?.n ?? 0,
+    deleted: deleted[0]?.n ?? 0,
+  };
+}
+
+export async function setCommentModerationStatus(input: {
+  commentId: string;
+  status: "pending" | "approved" | "rejected";
+  moderatorId: string;
+}) {
+  const patch =
+    input.status === "pending"
+      ? {
+          moderationStatus: "pending" as const,
+          moderatedAt: null,
+          moderatedBy: null,
+        }
+      : {
+          moderationStatus: input.status,
+          moderatedAt: new Date(),
+          moderatedBy: input.moderatorId,
+        };
+
+  const [updated] = await db
+    .update(comments)
+    .set(patch)
+    .where(eq(comments.id, input.commentId))
+    .returning({ id: comments.id });
+  if (!updated) {
+    throw new NotFoundError("Comment not found");
+  }
+  return updated;
 }
