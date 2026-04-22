@@ -38,7 +38,7 @@ export function AppSidebar({ userEmail, userName, enrollments }: Props) {
     <Sidebar >
       <SidebarHeader>
         <div className="flex items-center">
-          <span className="p-2 text-lg font-extrabold text-chart-3 tracking-tight ">
+          <span className="text-2xl pt-3 font-extrabold text-chart-3 tracking-tight ">
             Fluent Fast
           </span>
         </div>
@@ -56,26 +56,26 @@ export function AppSidebar({ userEmail, userName, enrollments }: Props) {
                   >
                     <Link href={`/courses/${activeSlug}`}>
                       <BookOpen />
-                      <span>Lessons</span>
+                      <span className="uppercase">Lessons</span>
                     </Link>
                   </SidebarMenuButton>
                 ) : (
                   <SidebarMenuButton disabled tooltip="Lessons">
                     <BookOpen />
-                    <span>Lessons</span>
+                    <span className="uppercase">Lessons</span>
                   </SidebarMenuButton>
                 )}
               </SidebarMenuItem>
               <SidebarMenuItem>
                 <SidebarMenuButton disabled tooltip="Flashcards">
                   <Layers />
-                  <span>Flashcards</span>
+                  <span className="uppercase">Flashcards</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
                 <SidebarMenuButton disabled tooltip="Review">
                   <RotateCcw />
-                  <span>Review</span>
+                  <span className="uppercase">Review</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>
