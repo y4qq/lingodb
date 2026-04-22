@@ -1,9 +1,7 @@
-import { AppShell } from "@/components/app/app-shell";
-
 export default function CoursesLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  return <AppShell>{children}</AppShell>;
+  return <>{children}</>;
 }

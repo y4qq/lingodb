@@ -16,7 +16,7 @@ export {
   listPublishedCourses,
 } from "../course.service";
 
-const SIGNED_URL_TTL_SECONDS = 60 * 10; // 10 minutes
+const SIGNED_URL_TTL_SECONDS = 60 * 60 * 2; // 2 hours
 
 export async function listAvailableCoursesForMe() {
   const user = await requireUser();

@@ -57,7 +57,7 @@ export function AudioPlayerProvider({ children }: { children: ReactNode }) {
   const play = useCallback((next: Track) => {
     setTrack((prev) => {
       if (prev?.id === next.id) {
-        void audioRef.current?.play();
+        void audioRef.current?.play().catch(() => {});
         return prev;
       }
       return next;
@@ -71,7 +71,7 @@ export function AudioPlayerProvider({ children }: { children: ReactNode }) {
   const toggle = useCallback(() => {
     const audio = audioRef.current;
     if (!audio) return;
-    if (audio.paused) void audio.play();
+    if (audio.paused) void audio.play().catch(() => {});
     else audio.pause();
   }, []);
 
@@ -141,6 +141,9 @@ export function AudioPlayerProvider({ children }: { children: ReactNode }) {
         onLoadedMetadata={(e) => {
           const d = e.currentTarget.duration;
           if (Number.isFinite(d)) setDuration(d);
+        }}
+        onError={() => {
+          setIsPlaying(false);
         }}
         className="hidden"
       />
