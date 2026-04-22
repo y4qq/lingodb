@@ -1,8 +1,8 @@
 import { Suspense } from "react";
 import { listAdminCoursesWithEnrollments } from "@/lib/domains/courses/queries/admin";
-import { AdminPageHeader } from "@/components/admin/admin-page-header";
+import { PageHeader } from "@/components/common/page-header";
 import { CourseCreateButton } from "@/components/admin/course-create-button";
-import { DataTable, type Column } from "@/components/admin/data-table";
+import { DataTable, type Column } from "@/components/common/data-table";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -52,7 +52,7 @@ const columns: Column<CourseRow>[] = [
 export default function AdminCoursesPage() {
   return (
     <>
-      <AdminPageHeader
+      <PageHeader
         breadcrumbs={[
           { href: "/admin", label: "Dashboard" },
           { label: "Courses" },

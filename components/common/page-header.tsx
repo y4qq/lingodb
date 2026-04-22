@@ -11,7 +11,7 @@ import {
 
 export type Crumb = { href?: string; label: string };
 
-type AdminPageHeaderProps = {
+type PageHeaderProps = {
   breadcrumbs: Crumb[];
   title: string;
   meta?: ReactNode;
@@ -19,13 +19,13 @@ type AdminPageHeaderProps = {
   action?: ReactNode;
 };
 
-export function AdminPageHeader({
+export function PageHeader({
   breadcrumbs,
   title,
   meta,
   description,
   action,
-}: AdminPageHeaderProps) {
+}: PageHeaderProps) {
   return (
     <div className="flex flex-col gap-3">
       <Breadcrumb>

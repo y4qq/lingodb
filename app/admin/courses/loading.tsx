@@ -1,10 +1,10 @@
-import { AdminPageHeaderSkeleton } from "@/components/admin/admin-page-header-skeleton";
+import { PageHeaderSkeleton } from "@/components/common/page-header-skeleton";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export default function Loading() {
   return (
     <>
-      <AdminPageHeaderSkeleton withAction />
+      <PageHeaderSkeleton withAction />
       <Skeleton className="h-64 w-full" />
     </>
   );

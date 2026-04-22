@@ -1,5 +1,5 @@
 import "server-only";
-import { and, asc, count, desc, eq, max, notInArray } from "drizzle-orm";
+import { and, asc, count, desc, eq, isNull, max, notInArray } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { ConflictError, NotFoundError } from "@/lib/errors";
 import {
@@ -154,6 +154,50 @@ export async function getPackForUser(
   if (!enrollment) return null;
 
   return { course, pack };
+}
+
+export async function getLessonForUser(
+  userId: string,
+  courseSlug: string,
+  packSlug: string,
+  lessonSlug: string,
+) {
+  const course = await db.query.courses.findFirst({
+    where: eq(courses.slug, courseSlug),
+    with: {
+      packs: {
+        where: and(eq(packs.slug, packSlug), eq(packs.isPublished, true)),
+        with: {
+          lessons: {
+            where: and(
+              eq(lessons.slug, lessonSlug),
+              eq(lessons.isPublished, true),
+            ),
+            with: {
+              audioVersions: {
+                where: isNull(lessonAudioVersions.disabledAt),
+                orderBy: desc(lessonAudioVersions.createdAt),
+              },
+            },
+          },
+        },
+      },
+    },
+  });
+  const pack = course?.packs[0];
+  const lesson = pack?.lessons[0];
+  if (!course || !pack || !lesson) return null;
+
+  const enrollment = await db.query.userCourses.findFirst({
+    where: and(
+      eq(userCourses.userId, userId),
+      eq(userCourses.courseId, course.id),
+    ),
+    columns: { courseId: true },
+  });
+  if (!enrollment) return null;
+
+  return { course, pack, lesson };
 }
 
 export async function listRecentAdminCourses(limit = 5) {

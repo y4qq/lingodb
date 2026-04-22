@@ -4,9 +4,9 @@ import {
   getAdminCourseStats,
   listRecentAdminCourses,
 } from "@/lib/domains/courses/queries/admin";
-import { AdminPageHeader } from "@/components/admin/admin-page-header";
+import { PageHeader } from "@/components/common/page-header";
 import { CourseCreateButton } from "@/components/admin/course-create-button";
-import { DataTable, type Column } from "@/components/admin/data-table";
+import { DataTable, type Column } from "@/components/common/data-table";
 import { StatCard } from "@/components/admin/stat-card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -48,7 +48,7 @@ const recentCoursesColumns: Column<RecentCourseRow>[] = [
 export default function AdminDashboardPage() {
   return (
     <>
-      <AdminPageHeader
+      <PageHeader
         breadcrumbs={[{ label: "Dashboard" }]}
         title="Dashboard"
         description="Overview of your content library."

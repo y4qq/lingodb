@@ -1,9 +1,9 @@
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { getAdminPackBySlugs } from "@/lib/domains/courses/queries/admin";
-import { AdminPageHeader } from "@/components/admin/admin-page-header";
-import { AdminPageHeaderSkeleton } from "@/components/admin/admin-page-header-skeleton";
-import { DataTable, type Column } from "@/components/admin/data-table";
+import { PageHeader } from "@/components/common/page-header";
+import { PageHeaderSkeleton } from "@/components/common/page-header-skeleton";
+import { DataTable, type Column } from "@/components/common/data-table";
 import { LessonCreateDialog } from "@/components/admin/lesson-create-dialog";
 import { PackEditDialog } from "@/components/admin/pack-edit-dialog";
 import { Badge } from "@/components/ui/badge";
@@ -60,7 +60,7 @@ async function Content({ params }: Props) {
 
   return (
     <>
-      <AdminPageHeader
+      <PageHeader
         breadcrumbs={[
           { href: "/admin", label: "Dashboard" },
           { href: "/admin/courses", label: "Courses" },
@@ -112,7 +112,7 @@ async function Content({ params }: Props) {
 function Fallback() {
   return (
     <>
-      <AdminPageHeaderSkeleton />
+      <PageHeaderSkeleton />
       <Skeleton className="h-64 w-full" />
     </>
   );

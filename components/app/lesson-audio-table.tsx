@@ -1,48 +1,34 @@
 "use client";
 
 import { useAudioPlayer } from "@/components/audio-player";
-import { useAudioSelection } from "@/components/admin/audio-selection-provider";
 import { DataTable, type Column } from "@/components/common/data-table";
 import { Badge } from "@/components/ui/badge";
-import { Checkbox } from "@/components/ui/checkbox";
 
-export type AudioVersion = {
+export type LessonAudioVersion = {
   id: string;
   label: string;
-  audioPath: string;
   audioDurationSeconds: number | null;
   isCurrent: boolean;
-  disabledAt: Date | null;
   createdAt: Date;
   signedUrl: string | null;
 };
 
-export function AudioVersionsTable({
+export function LessonAudioTable({
   versions,
 }: {
-  versions: AudioVersion[];
+  versions: LessonAudioVersion[];
 }) {
   const { play, track } = useAudioPlayer();
-  const { selectedId, setSelectedId } = useAudioSelection();
 
-  const columns: Column<AudioVersion>[] = [
-    {
-      header: "",
-      className: "w-10",
-      cell: (v) => (
-        <Checkbox
-          checked={selectedId === v.id}
-          onCheckedChange={(checked) =>
-            setSelectedId(checked ? v.id : null)
-          }
-          onClick={(e) => e.stopPropagation()}
-          aria-label={`Select ${v.label}`}
-        />
-      ),
-    },
+  const columns: Column<LessonAudioVersion>[] = [
     {
       header: "Label",
-      cell: (v) => <span className="font-medium">{v.label}</span>,
+      cell: (v) => (
+        <span className="flex items-center gap-2">
+          <span className="font-medium">{v.label}</span>
+          {v.isCurrent && <Badge variant="secondary">Current</Badge>}
+        </span>
+      ),
     },
     {
       header: "Duration",
@@ -60,16 +46,20 @@ export function AudioVersionsTable({
     },
     {
       header: "Status",
-      className: "w-44",
-      cell: (v) => (
-        <div className="flex items-center gap-1.5">
-          {v.isCurrent && <Badge>Current</Badge>}
-          {v.disabledAt !== null && <Badge variant="secondary">Disabled</Badge>}
-          {track?.id === v.id && (
-            <Badge variant="outline">Playing</Badge>
-          )}
-        </div>
-      ),
+      className: "w-36",
+      cell: (v) => {
+        if (!v.signedUrl) {
+          return (
+            <span className="text-muted-foreground text-xs">
+              Playback unavailable
+            </span>
+          );
+        }
+        if (track?.id === v.id) {
+          return <Badge variant="outline">Playing</Badge>;
+        }
+        return null;
+      },
     },
   ];
 
@@ -78,7 +68,6 @@ export function AudioVersionsTable({
       columns={columns}
       data={versions}
       rowKey={(v) => v.id}
-      rowIsSelected={(v) => selectedId === v.id}
       onRowClick={(v) => {
         if (!v.signedUrl) return;
         play({
@@ -88,7 +77,7 @@ export function AudioVersionsTable({
           durationSeconds: v.audioDurationSeconds,
         });
       }}
-      empty="No audio versions yet. Upload one to get started."
+      empty="No audio for this lesson yet."
     />
   );
 }

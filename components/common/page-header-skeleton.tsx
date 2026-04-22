@@ -1,14 +1,14 @@
 import { Skeleton } from "@/components/ui/skeleton";
 
-type AdminPageHeaderSkeletonProps = {
+type PageHeaderSkeletonProps = {
   withDescription?: boolean;
   withAction?: boolean;
 };
 
-export function AdminPageHeaderSkeleton({
+export function PageHeaderSkeleton({
   withDescription = true,
   withAction = false,
-}: AdminPageHeaderSkeletonProps) {
+}: PageHeaderSkeletonProps) {
   return (
     <div className="flex flex-col gap-3">
       <Skeleton className="h-4 w-56" />

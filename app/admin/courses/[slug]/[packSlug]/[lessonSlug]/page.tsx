@@ -1,8 +1,8 @@
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { getAdminLessonBySlugs } from "@/lib/domains/courses/queries/admin";
-import { AdminPageHeader } from "@/components/admin/admin-page-header";
-import { AdminPageHeaderSkeleton } from "@/components/admin/admin-page-header-skeleton";
+import { PageHeader } from "@/components/common/page-header";
+import { PageHeaderSkeleton } from "@/components/common/page-header-skeleton";
 import { AudioSelectionProvider } from "@/components/admin/audio-selection-provider";
 import { AudioVersionsHeaderActions } from "@/components/admin/audio-versions-header-actions";
 import { AudioVersionsTable } from "@/components/admin/audio-versions-table";
@@ -35,7 +35,7 @@ async function Content({ params }: Props) {
   return (
     <AudioPlayerProvider>
       <AudioSelectionProvider>
-        <AdminPageHeader
+        <PageHeader
           breadcrumbs={[
             { href: "/admin", label: "Dashboard" },
             { href: "/admin/courses", label: "Courses" },
@@ -76,7 +76,7 @@ async function Content({ params }: Props) {
 function Fallback() {
   return (
     <>
-      <AdminPageHeaderSkeleton />
+      <PageHeaderSkeleton />
       <Skeleton className="h-48 w-full" />
     </>
   );
