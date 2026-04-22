@@ -37,7 +37,7 @@ async function AppShellInner({ children }: { children: React.ReactNode }) {
           enrollments={navItems}
         />
         <SidebarInset>
-          <div className="flex flex-1 flex-col gap-6 p-6">{children}</div>
+          <div className="flex flex-1 flex-col ">{children}</div>
         </SidebarInset>
       </SidebarProvider>
     </TooltipProvider>

@@ -1,5 +1,4 @@
 import { Suspense } from "react";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getCourseCommentsForMe } from "@/lib/domains/comments/queries/public";
 import { getMyCourseBySlug } from "@/lib/domains/courses/queries/public";
@@ -7,16 +6,8 @@ import {
   CommentsPanel,
   CommentsSidebar,
 } from "@/components/app/comments-panel";
-import { PageHeader } from "@/components/common/page-header";
+import { UnitCard } from "@/components/app/unit-card";
 import { PageHeaderSkeleton } from "@/components/common/page-header-skeleton";
-import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 
 type Props = { params: Promise<{ slug: string }> };
@@ -37,36 +28,44 @@ async function Content({ params }: Props) {
   const { comments, currentUserId } = await getCourseCommentsForMe(course.id);
 
   return (
-    <div className="mx-auto flex w-full max-w-5xl flex-col gap-6">
-      <PageHeader breadcrumbs={[]} title="Units" />
+    <div className="mx-auto flex w-full max-w-6xl flex-col gap-6">
 
-      <div className="grid gap-10 lg:grid-cols-8 lg:items-start">
-        <section className="flex flex-col gap-6 lg:col-span-4">
+      <div className="grid  lg:grid-cols-8 lg:items-start">
+        <section className="lg:col-span-5 border-x-2 px-16">
           {course.units.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No units yet.</p>
+            <p className="py-10 text-sm text-muted-foreground">No units yet.</p>
           ) : (
-            course.units.map((unit) => (
-              <Card key={unit.id}>
-                <CardHeader className="items-center text-center">
-                  <CardTitle>{unit.title}</CardTitle>
-                  {unit.description && (
-                    <CardDescription>{unit.description}</CardDescription>
+            <div className="flex flex-col gap-16 py-10">
+              {course.units.map((unit) => (
+                <section key={unit.id} className="flex flex-col gap-5">
+                  <h2 className="font-heading text-xl font-bold tracking-tight">
+                    {unit.title}
+                  </h2>
+                  {unit.lessons.length === 0 ? (
+                    <p className="text-sm text-muted-foreground">
+                      No lessons yet.
+                    </p>
+                  ) : (
+                    <div className="flex flex-col gap-4">
+                      {unit.lessons.map((lesson, lessonIndex) => (
+                        <UnitCard
+                          key={lesson.id}
+                          href={`/courses/${course.slug}/${unit.slug}/${lesson.slug}`}
+                          unitNumber={lessonIndex + 1}
+                          title={lesson.title}
+                          description={lesson.description}
+                        />
+                      ))}
+                    </div>
                   )}
-                </CardHeader>
-                <CardFooter>
-                  <Button asChild variant="outline" className="w-full">
-                    <Link href={`/courses/${course.slug}/${unit.slug}`}>
-                      Open unit
-                    </Link>
-                  </Button>
-                </CardFooter>
-              </Card>
-            ))
+                </section>
+              ))}
+            </div>
           )}
         </section>
 
         <CommentsSidebar
-          className="sticky top-6 hidden max-h-[calc(100vh-10rem)] lg:col-span-4 lg:flex"
+          className="sticky top-0 hidden h-[100vh] w-full lg:col-span-3 lg:flex"
           target={{ kind: "course", courseId: course.id }}
           initialComments={comments}
           currentUserId={currentUserId}

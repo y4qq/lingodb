@@ -36,7 +36,6 @@ export type LessonPlayerVersion = {
 
 type Props = {
   courseSlug: string;
-  unitSlug: string;
   unitTitle: string;
   lessonTitle: string;
   lessonDescription: string | null;
@@ -53,7 +52,6 @@ export function LessonPlayer(props: Props) {
 
 function LessonPlayerUI({
   courseSlug,
-  unitSlug,
   unitTitle,
   lessonTitle,
   lessonDescription,
@@ -97,8 +95,8 @@ function LessonPlayerUI({
   return (
     <div className="flex min-h-svh flex-col">
       <header className="px-6 py-4">
-        <Button asChild variant="ghost" size="icon" aria-label="Back to unit">
-          <Link href={`/courses/${courseSlug}/${unitSlug}`}>
+        <Button asChild variant="ghost" size="icon" aria-label="Back to course">
+          <Link href={`/courses/${courseSlug}`}>
             <ChevronLeft />
           </Link>
         </Button>

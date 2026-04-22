@@ -224,7 +224,7 @@ function resolveTarget(row: AdminModerationRow): Target | null {
   }
   if (row.unit) {
     return {
-      href: `/courses/${row.unit.course.slug}/${row.unit.slug}`,
+      href: `/courses/${row.unit.course.slug}`,
       label: `${row.unit.course.title} › ${row.unit.title}`,
     };
   }
@@ -237,7 +237,7 @@ function resolveTarget(row: AdminModerationRow): Target | null {
     }
     if (row.parent.unit) {
       return {
-        href: `/courses/${row.parent.unit.course.slug}/${row.parent.unit.slug}`,
+        href: `/courses/${row.parent.unit.course.slug}`,
         label: `${row.parent.unit.course.title} › ${row.parent.unit.title}`,
       };
     }

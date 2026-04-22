@@ -35,11 +35,11 @@ export function CommentItem({
   if (isDeleted) {
     return (
       <div className="flex gap-3">
-        <Avatar size="sm">
+        <Avatar>
           <AvatarFallback>{name[0]?.toUpperCase() ?? "?"}</AvatarFallback>
         </Avatar>
         <div className="flex min-w-0 flex-1 items-center">
-          <p className="text-muted-foreground text-sm italic">
+          <p className="text-muted-foreground text-base italic">
             Comment deleted by author
           </p>
         </div>
@@ -54,22 +54,26 @@ export function CommentItem({
 
   return (
     <div className="flex gap-3">
-      <Avatar size="sm">
+      <Avatar>
         <AvatarFallback>{name[0]?.toUpperCase() ?? "?"}</AvatarFallback>
       </Avatar>
-      <div className="flex min-w-0 flex-1 flex-col gap-1">
+      <div className="flex min-w-0 flex-1 flex-col gap-1.5">
         <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
-          <span className="truncate text-sm font-medium">{name}</span>
-          <span className="text-muted-foreground text-xs">{when}</span>
+          <span className="font-heading truncate text-base font-semibold">
+            {name}
+          </span>
+          <span className="text-muted-foreground text-sm">{when}</span>
           {isOwnPending && (
             <Badge variant="secondary" className="ml-auto">
               Pending
             </Badge>
           )}
         </div>
-        <p className="text-sm whitespace-pre-wrap break-words">{comment.body}</p>
+        <p className="text-base leading-relaxed whitespace-pre-wrap break-words">
+          {comment.body}
+        </p>
         {showActionRow && (
-          <div className="-ml-2 flex items-center gap-1">
+          <div className="-ml-2 mt-1 flex items-center gap-1">
             {showReactions && (
               <CommentReactions
                 commentId={comment.id}
@@ -83,7 +87,7 @@ export function CommentItem({
               <Button
                 type="button"
                 variant="ghost"
-                size="xs"
+                size="sm"
                 onClick={onReplyClick}
                 className="text-muted-foreground gap-1"
               >

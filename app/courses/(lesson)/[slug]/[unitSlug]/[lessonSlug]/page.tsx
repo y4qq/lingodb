@@ -37,7 +37,6 @@ async function Content({ params }: Props) {
   return (
     <LessonPlayer
       courseSlug={course.slug}
-      unitSlug={unit.slug}
       unitTitle={unit.title}
       lessonTitle={lesson.title}
       lessonDescription={lesson.description ?? null}

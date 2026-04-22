@@ -10,6 +10,7 @@ import type { CommentWithThread } from "@/lib/domains/comments/queries/public";
 import { CommentItem } from "@/components/app/comment-item";
 import { CommentReplyForm } from "@/components/app/comment-reply-form";
 import { Button } from "@/components/ui/button";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Sheet,
   SheetContent,
@@ -55,10 +56,12 @@ export function CommentsPanel({
       </SheetTrigger>
       <SheetContent
         side="right"
-        className="flex w-full flex-col gap-0 p-0 sm:max-w-[480px]"
+        className="flex w-full flex-col gap-0 p-0 sm:max-w-[520px]"
       >
-        <SheetHeader className="border-b">
-          <SheetTitle>Comments</SheetTitle>
+        <SheetHeader className="border-b-2 px-6 py-5">
+          <SheetTitle className="font-heading text-xl font-bold tracking-tight">
+            Comments
+          </SheetTitle>
         </SheetHeader>
         <CommentsList
           comments={initialComments}
@@ -79,12 +82,14 @@ export function CommentsSidebar({
   return (
     <aside
       className={cn(
-        "flex flex-col overflow-hidden rounded-4xl border-2 border-border bg-background",
+        "flex flex-col overflow-hidden border-r-2 border-border ",
         className,
       )}
     >
-      <div className="border-b-2 px-4 py-3 bg-sidebar">
-        <h2 className="font-heading text-base font-medium">Comments</h2>
+      <div className="border-b-2 px-6 py-5">
+        <h2 className="font-heading text-xl font-bold tracking-tight">
+          Comments
+        </h2>
       </div>
       <CommentsList comments={initialComments} currentUserId={currentUserId} />
       <CommentForm target={target} />
@@ -103,8 +108,8 @@ function CommentsList({
 
   if (comments.length === 0) {
     return (
-      <div className="flex flex-1 items-center justify-center px-6 py-10">
-        <p className="text-muted-foreground text-sm">
+      <div className="flex flex-1 items-center justify-center px-6 py-12">
+        <p className="text-muted-foreground text-base">
           No comments yet. Be the first to leave one.
         </p>
       </div>
@@ -112,10 +117,10 @@ function CommentsList({
   }
 
   return (
-    <div className="min-h-0 flex-1 overflow-y-auto">
-      <ul className="flex flex-col gap-5 px-4 py-4">
+    <ScrollArea className="min-h-0 flex-1">
+      <ul className="flex flex-col gap-8 px-6 py-6">
         {comments.map((c) => (
-          <li key={c.id} className="flex flex-col gap-3">
+          <li key={c.id} className="flex flex-col gap-4">
             <CommentItem
               comment={c}
               currentUserId={currentUserId}
@@ -123,7 +128,7 @@ function CommentsList({
               onReplyClick={() => setReplyingToId(c.id)}
             />
             {replyingToId === c.id && (
-              <div className="pl-11">
+              <div className="pl-12">
                 <CommentReplyForm
                   parentCommentId={c.id}
                   onSubmitted={() => setReplyingToId(null)}
@@ -132,7 +137,7 @@ function CommentsList({
               </div>
             )}
             {c.replies.length > 0 && (
-              <ul className="flex flex-col gap-4 pl-11">
+              <ul className="flex flex-col gap-6 pl-12">
                 {c.replies.map((r) => (
                   <li key={r.id}>
                     <CommentItem
@@ -146,7 +151,7 @@ function CommentsList({
           </li>
         ))}
       </ul>
-    </div>
+    </ScrollArea>
   );
 }
 
@@ -169,7 +174,7 @@ function CommentForm({ target }: { target: CommentsPanelProps["target"] }) {
     <form
       ref={formRef}
       action={formAction}
-      className="border-t-2 bg-background p-4 flex flex-col gap-2"
+      className="border-t-2 bg-background px-6 py-5 flex flex-col gap-3"
     >
       {target.kind === "course" ? (
         <input type="hidden" name="courseId" value={target.courseId} />
@@ -183,14 +188,18 @@ function CommentForm({ target }: { target: CommentsPanelProps["target"] }) {
         required
         maxLength={4000}
         aria-invalid={bodyError ? true : undefined}
+        className="text-base"
       />
-      {bodyError && <p className="text-destructive text-xs">{bodyError}</p>}
+      {bodyError && <p className="text-destructive text-sm">{bodyError}</p>}
       {summaryError && (
-        <p className="text-destructive text-xs">{summaryError}</p>
+        <p className="text-destructive text-sm">{summaryError}</p>
       )}
-      <div className="flex items-center justify-end gap-2">
-        <Button type="submit" size="sm" disabled={isPending}>
-          <Send className="size-3.5" />
+      <div className="flex items-center justify-between gap-3">
+        <p className="text-muted-foreground text-sm">
+          Comments are reviewed before they appear publicly.
+        </p>
+        <Button type="submit" disabled={isPending}>
+          <Send className="size-4" />
           {isPending ? "Posting…" : "Post"}
         </Button>
       </div>

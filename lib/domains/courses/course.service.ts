@@ -105,6 +105,12 @@ export async function getCourseForUser(userId: string, slug: string) {
       units: {
         where: eq(units.isPublished, true),
         orderBy: asc(units.position),
+        with: {
+          lessons: {
+            where: eq(lessons.isPublished, true),
+            orderBy: asc(lessons.position),
+          },
+        },
       },
     },
   });

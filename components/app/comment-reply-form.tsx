@@ -39,7 +39,7 @@ export function CommentReplyForm({
     <form
       ref={formRef}
       action={formAction}
-      className="flex flex-col gap-2 rounded-md border bg-muted/30 p-3"
+      className="flex flex-col gap-3 rounded-xl border-2 bg-muted/30 p-4"
     >
       <input
         type="hidden"
@@ -54,6 +54,7 @@ export function CommentReplyForm({
         required
         maxLength={4000}
         aria-invalid={bodyError ? true : undefined}
+        className="text-base"
         onKeyDown={(e) => {
           if (e.key === "Escape") {
             e.preventDefault();
@@ -61,22 +62,21 @@ export function CommentReplyForm({
           }
         }}
       />
-      {bodyError && <p className="text-destructive text-xs">{bodyError}</p>}
+      {bodyError && <p className="text-destructive text-sm">{bodyError}</p>}
       {summaryError && (
-        <p className="text-destructive text-xs">{summaryError}</p>
+        <p className="text-destructive text-sm">{summaryError}</p>
       )}
       <div className="flex items-center justify-end gap-2">
         <Button
           type="button"
           variant="ghost"
-          size="sm"
           onClick={onCancel}
           disabled={isPending}
         >
           Cancel
         </Button>
-        <Button type="submit" size="sm" disabled={isPending}>
-          <Send className="size-3.5" />
+        <Button type="submit" disabled={isPending}>
+          <Send className="size-4" />
           {isPending ? "Posting…" : "Reply"}
         </Button>
       </div>
