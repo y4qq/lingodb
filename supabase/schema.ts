@@ -26,6 +26,7 @@ const timestamps = {
 
 export const userRole = pgEnum('user_role', ['user', 'admin']);
 export const moderationStatus = pgEnum('moderation_status', ['pending', 'approved', 'rejected']);
+export const reactionType = pgEnum('reaction_type', ['like', 'dislike']);
 
 const authSchema = pgSchema('auth');
 const authUsers = authSchema.table('users', {
@@ -164,6 +165,7 @@ export const comments = pgTable('comments', {
   moderationStatus: moderationStatus('moderation_status').notNull().default('pending'),
   moderatedAt: timestamp('moderated_at', { withTimezone: true }),
   moderatedBy: uuid('moderated_by').references(() => users.id),
+  deletedAt: timestamp('deleted_at', { withTimezone: true }),
   ...timestamps,
 }, (t) => [
   check('comments_body_length_check', sql`char_length(${t.body}) between 1 and 4000`),
@@ -189,4 +191,14 @@ export const comments = pgTable('comments', {
   index('comments_parent_comment_id_idx').on(t.parentCommentId),
   index('comments_course_id_idx').on(t.courseId),
   index('comments_pack_id_idx').on(t.packId),
+]).enableRLS();
+
+export const commentReactions = pgTable('comment_reactions', {
+  userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  commentId: uuid('comment_id').notNull().references(() => comments.id, { onDelete: 'cascade' }),
+  reaction: reactionType('reaction').notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [
+  primaryKey({ columns: [t.userId, t.commentId], name: 'comment_reactions_pkey' }),
+  index('comment_reactions_comment_id_idx').on(t.commentId),
 ]).enableRLS();

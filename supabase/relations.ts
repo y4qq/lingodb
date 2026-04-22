@@ -1,5 +1,6 @@
 import { relations } from "drizzle-orm";
 import {
+  commentReactions,
   comments,
   courses,
   languages,
@@ -144,5 +145,17 @@ export const commentsRelations = relations(comments, ({ one, many }) => ({
   audioVersion: one(lessonAudioVersions, {
     fields: [comments.audioVersionId],
     references: [lessonAudioVersions.id],
+  }),
+  reactions: many(commentReactions),
+}));
+
+export const commentReactionsRelations = relations(commentReactions, ({ one }) => ({
+  user: one(users, {
+    fields: [commentReactions.userId],
+    references: [users.id],
+  }),
+  comment: one(comments, {
+    fields: [commentReactions.commentId],
+    references: [comments.id],
   }),
 }));

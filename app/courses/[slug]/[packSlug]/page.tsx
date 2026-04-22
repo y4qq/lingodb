@@ -1,6 +1,8 @@
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
+import { getPackCommentsForMe } from "@/lib/domains/comments/queries/public";
 import { getMyPackBySlugs } from "@/lib/domains/courses/queries/public";
+import { CommentsPanel } from "@/components/app/comments-panel";
 import { PageHeader } from "@/components/common/page-header";
 import { PageHeaderSkeleton } from "@/components/common/page-header-skeleton";
 import { DataTable, type Column } from "@/components/common/data-table";
@@ -47,6 +49,7 @@ async function Content({ params }: Props) {
   if (!result) notFound();
 
   const { course, pack } = result;
+  const { comments, currentUserId } = await getPackCommentsForMe(pack.id);
 
   return (
     <>
@@ -70,6 +73,12 @@ async function Content({ params }: Props) {
           empty="No lessons yet."
         />
       </section>
+
+      <CommentsPanel
+        target={{ kind: "pack", packId: pack.id }}
+        initialComments={comments}
+        currentUserId={currentUserId}
+      />
     </>
   );
 }
