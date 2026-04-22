@@ -73,6 +73,20 @@ export async function enrollUserInCourse(
   return { courseId, courseSlug: course.slug };
 }
 
+export async function setDisplayName(userId: string, displayName: string) {
+  await db
+    .update(users)
+    .set({ displayName })
+    .where(eq(users.id, userId));
+}
+
+export async function markOnboardingComplete(userId: string) {
+  await db
+    .update(users)
+    .set({ onboardedAt: new Date() })
+    .where(eq(users.id, userId));
+}
+
 export async function setActiveCourse(userId: string, courseId: string) {
   const enrollment = await db.query.userCourses.findFirst({
     where: and(

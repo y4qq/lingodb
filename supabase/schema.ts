@@ -39,6 +39,7 @@ export const users = pgTable('users', {
   displayName: text('display_name'),
   role: userRole('role').notNull().default('user'),
   activeCourseId: uuid('active_course_id').references((): AnyPgColumn => courses.id, { onDelete: 'set null' }),
+  onboardedAt: timestamp('onboarded_at', { withTimezone: true }),
   ...timestamps,
 }).enableRLS();
 

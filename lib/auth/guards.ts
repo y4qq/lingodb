@@ -17,6 +17,9 @@ export async function requireUser() {
 
 export async function requireAdmin() {
   const { user, profile } = await requireUserWithProfile();
+  if (!profile.onboardedAt) {
+    redirect("/onboarding");
+  }
   if (profile.role !== "admin") {
     notFound();
   }
@@ -31,6 +34,7 @@ export async function requireUserWithProfile() {
     displayName: true,
     role: true,
     activeCourseId: true,
+    onboardedAt: true,
   } as const;
 
   let profile = await db.query.users.findFirst({

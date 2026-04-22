@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { redirect } from "next/navigation";
 import { AppSidebar } from "@/components/app/app-sidebar";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -16,6 +17,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
 async function AppShellInner({ children }: { children: React.ReactNode }) {
   const { profile } = await requireUserWithProfile();
+  if (!profile.onboardedAt) {
+    redirect("/onboarding");
+  }
   const enrollments = await listMyEnrollments();
 
   const navItems = enrollments.map((e) => ({
