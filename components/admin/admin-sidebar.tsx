@@ -20,7 +20,6 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  SidebarTrigger,
 } from "@/components/ui/sidebar";
 import { UserMenu } from "@/components/auth/user-menu";
 
@@ -61,13 +60,12 @@ export function AdminSidebar({ userEmail, userName }: Props) {
   const pathname = usePathname();
 
   return (
-    <Sidebar variant="inset" collapsible="icon">
+    <Sidebar>
       <SidebarHeader>
-        <div className="flex items-center justify-between group-data-[collapsible=icon]:justify-center">
-          <span className="px-2 text-sm font-semibold tracking-tight group-data-[collapsible=icon]:hidden">
+        <div className="flex items-center">
+          <span className="px-2 text-sm font-semibold tracking-tight">
             Admin
           </span>
-          <SidebarTrigger />
         </div>
       </SidebarHeader>
       <SidebarContent>

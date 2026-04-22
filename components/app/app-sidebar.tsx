@@ -17,7 +17,6 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarSeparator,
-  SidebarTrigger,
 } from "@/components/ui/sidebar";
 
 export type EnrollmentNavItem = {
@@ -42,13 +41,12 @@ export function AppSidebar({
   const pathname = usePathname();
 
   return (
-    <Sidebar variant="inset" collapsible="icon">
+    <Sidebar >
       <SidebarHeader>
         <div className="flex items-center justify-between group-data-[collapsible=icon]:justify-center">
           <span className="px-2 text-sm font-semibold tracking-tight group-data-[collapsible=icon]:hidden">
             Fluent Fast
           </span>
-          <SidebarTrigger />
         </div>
       </SidebarHeader>
       <SidebarContent>
