@@ -341,6 +341,8 @@ export type ModerationFilter = {
   limit?: number;
 };
 
+const MODERATION_DEFAULT_LIMIT = 200;
+
 // Single flat list of comments for the admin moderation surface. Top-level
 // and replies are interleaved; the row carries enough joined context (author,
 // direct course/unit, plus parent → course/unit for replies) that the UI can
@@ -355,7 +357,7 @@ export async function listCommentsForModeration(filter: ModerationFilter) {
           ? isNull(comments.deletedAt)
           : undefined,
     ),
-    limit: filter.limit,
+    limit: filter.limit ?? MODERATION_DEFAULT_LIMIT,
     orderBy: desc(comments.createdAt),
     with: {
       author: { columns: { id: true, displayName: true, email: true } },

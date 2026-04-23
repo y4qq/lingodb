@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, use, useEffect, useState } from "react";
 import {
   Check,
   CheckCircle2,
@@ -27,11 +27,10 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  getUnitForPlayback,
-  type PlaybackLesson,
-  type PlaybackPayload,
-  type PlaybackUnit,
+import type {
+  PlaybackLesson,
+  PlaybackResult,
+  PlaybackUnit,
 } from "@/lib/domains/courses/actions/playback";
 import { cn } from "@/lib/utils";
 
@@ -40,18 +39,20 @@ const COUNTDOWN_SECONDS = 5;
 type Props = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  courseSlug: string;
-  unitSlug: string;
+  // Server-action promise is created by the parent when the user opens a
+  // lesson, so the fetch happens exactly once per open and we avoid the
+  // useEffect-driven "fetch on mount" pattern the LessonDialog used to run.
+  payloadPromise: Promise<PlaybackResult> | undefined;
   startLessonSlug: string;
 };
 
 export function LessonDialog({
   open,
   onOpenChange,
-  courseSlug,
-  unitSlug,
+  payloadPromise,
   startLessonSlug,
 }: Props) {
+  const close = () => onOpenChange(false);
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
@@ -59,13 +60,14 @@ export function LessonDialog({
         className="flex h-[100svh] w-screen max-w-none flex-col overflow-hidden rounded-none p-0 sm:max-w-none"
       >
         <DialogTitle className="sr-only">Lesson player</DialogTitle>
-        {open && (
-          <LessonDialogBody
-            courseSlug={courseSlug}
-            unitSlug={unitSlug}
-            startLessonSlug={startLessonSlug}
-            onClose={() => onOpenChange(false)}
-          />
+        {open && payloadPromise && (
+          <Suspense fallback={<LoadingChrome onClose={close} />}>
+            <LessonDialogBody
+              payloadPromise={payloadPromise}
+              startLessonSlug={startLessonSlug}
+              onClose={close}
+            />
+          </Suspense>
         )}
       </DialogContent>
     </Dialog>
@@ -73,56 +75,29 @@ export function LessonDialog({
 }
 
 function LessonDialogBody({
-  courseSlug,
-  unitSlug,
+  payloadPromise,
   startLessonSlug,
   onClose,
 }: {
-  courseSlug: string;
-  unitSlug: string;
+  payloadPromise: Promise<PlaybackResult>;
   startLessonSlug: string;
   onClose: () => void;
 }) {
-  const [payload, setPayload] = useState<PlaybackPayload | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const result = use(payloadPromise);
 
-  useEffect(() => {
-    let cancelled = false;
-    setPayload(null);
-    setError(null);
-    (async () => {
-      const result = await getUnitForPlayback(courseSlug, unitSlug);
-      if (cancelled) return;
-      if (result.ok) setPayload(result.data);
-      else setError(result.error);
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [courseSlug, unitSlug]);
-
-  if (error) {
+  if (!result.ok) {
     return (
       <Chrome onClose={onClose}>
         <CenteredMessage
           title="Couldn't load lesson"
-          body={error}
+          body={result.error}
           onClose={onClose}
         />
       </Chrome>
     );
   }
-  if (!payload) {
-    return (
-      <Chrome onClose={onClose}>
-        <div className="flex h-full items-center justify-center">
-          <div className="text-muted-foreground animate-pulse text-sm">
-            Loading lesson…
-          </div>
-        </div>
-      </Chrome>
-    );
-  }
+
+  const payload = result.data;
 
   if (payload.unit.lessons.length === 0) {
     return (
@@ -143,6 +118,18 @@ function LessonDialogBody({
 
   return (
     <Playback unit={payload.unit} startIndex={startIndex} onClose={onClose} />
+  );
+}
+
+function LoadingChrome({ onClose }: { onClose: () => void }) {
+  return (
+    <Chrome onClose={onClose}>
+      <div className="flex h-full items-center justify-center">
+        <div className="text-muted-foreground animate-pulse text-sm">
+          Loading lesson…
+        </div>
+      </div>
+    </Chrome>
   );
 }
 

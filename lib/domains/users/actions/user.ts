@@ -18,6 +18,7 @@ export type ActionResult<T> =
   | { ok: false; error?: string; fieldErrors?: Record<string, string[]> };
 
 const courseIdSchema = z.object({ courseId: z.uuid() });
+const courseIdStringSchema = z.uuid();
 
 const displayNameSchema = z.object({
   name: z
@@ -51,8 +52,15 @@ export async function enrollInCourse(
 }
 
 export async function setActiveCourseForMe(courseId: string): Promise<void> {
-  const user = await requireUser();
-  await usersService.setActiveCourse(user.id, courseId);
+  const parsed = courseIdStringSchema.safeParse(courseId);
+  if (!parsed.success) {
+    throw new ValidationError("Invalid course id");
+  }
+  await runUserTask({
+    actionName: "setActiveCourseForMe",
+    extra: { input: { courseId: parsed.data } },
+    execute: (userId) => usersService.setActiveCourse(userId, parsed.data),
+  });
 }
 
 export async function completeOnboarding(
@@ -106,6 +114,26 @@ async function runUserAction<T>({
       extra: { action: actionName, ...extra },
     });
     return { ok: false, error: genericMessage };
+  }
+}
+
+async function runUserTask(opts: {
+  actionName: string;
+  execute: (userId: string) => Promise<void>;
+  extra?: Record<string, unknown>;
+}): Promise<void> {
+  const user = await requireUser();
+  Sentry.setUser({ id: user.id, email: user.email ?? undefined });
+  try {
+    await opts.execute(user.id);
+  } catch (err) {
+    if (isNextControlFlowError(err)) throw err;
+    if (!isDomainError(err)) {
+      Sentry.captureException(err, {
+        extra: { action: opts.actionName, ...opts.extra },
+      });
+    }
+    throw err;
   }
 }
 
