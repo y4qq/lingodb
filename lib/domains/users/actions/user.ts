@@ -50,47 +50,9 @@ export async function enrollInCourse(
   });
 }
 
-export async function setActiveCourse(
-  _prev: ActionResult<{ courseId: string }> | undefined,
-  formData: FormData,
-): Promise<ActionResult<{ courseId: string }>> {
-  const parsed = courseIdSchema.safeParse(Object.fromEntries(formData));
-  if (!parsed.success) {
-    return { ok: false, fieldErrors: toFieldErrors(parsed.error) };
-  }
-  return runUserAction({
-    actionName: "setActiveCourse",
-    extra: { input: parsed.data },
-    execute: async (userId) => {
-      await usersService.setActiveCourse(userId, parsed.data.courseId);
-      return { courseId: parsed.data.courseId };
-    },
-    onSuccess: () => revalidatePath("/", "layout"),
-  });
-}
-
 export async function setActiveCourseForMe(courseId: string): Promise<void> {
   const user = await requireUser();
   await usersService.setActiveCourse(user.id, courseId);
-}
-
-export async function setMyDisplayName(
-  _prev: ActionResult<{ displayName: string }> | undefined,
-  formData: FormData,
-): Promise<ActionResult<{ displayName: string }>> {
-  const parsed = displayNameSchema.safeParse(Object.fromEntries(formData));
-  if (!parsed.success) {
-    return { ok: false, fieldErrors: toFieldErrors(parsed.error) };
-  }
-  return runUserAction({
-    actionName: "setMyDisplayName",
-    extra: { input: parsed.data },
-    execute: async (userId) => {
-      await usersService.setDisplayName(userId, parsed.data.name);
-      return { displayName: parsed.data.name };
-    },
-    onSuccess: () => revalidatePath("/", "layout"),
-  });
 }
 
 export async function completeOnboarding(

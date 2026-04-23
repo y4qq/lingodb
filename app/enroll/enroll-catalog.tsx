@@ -4,7 +4,6 @@ import "react-flagpack-react-19/dist/style.css";
 import { useActionState, useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Flag from "react-flagpack-react-19";
-import type { CatalogCourse } from "@/components/app/course-catalog-groups";
 import { flagForLanguageCode } from "@/lib/domains/courses/language-flags";
 import {
   FloatingPanelCard,
@@ -12,6 +11,13 @@ import {
 } from "@/components/ui/floating-panel";
 import { Spinner } from "@/components/ui/spinner";
 import { enrollInCourse } from "@/lib/domains/users/actions/user";
+
+type CatalogCourse = {
+  id: string;
+  title: string;
+  baseLanguage: { id: string; name: string };
+  targetLanguage: { code: string; name: string };
+};
 
 type Props = {
   courses: CatalogCourse[];

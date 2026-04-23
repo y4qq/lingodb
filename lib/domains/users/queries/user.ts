@@ -2,7 +2,6 @@ import "server-only";
 import { requireUser } from "@/lib/auth/guards";
 import {
   assertCanAccessCourse as assertCanAccessCourseRow,
-  getUserWithActiveCourse as getUserWithActiveCourseRow,
   listUserEnrollments as listUserEnrollmentsRows,
   resolveLandingForUser as resolveLandingForUserRow,
 } from "../service";
@@ -10,11 +9,6 @@ import {
 export async function listMyEnrollments() {
   const user = await requireUser();
   return listUserEnrollmentsRows(user.id);
-}
-
-export async function getMyProfileWithActiveCourse() {
-  const user = await requireUser();
-  return getUserWithActiveCourseRow(user.id);
 }
 
 export async function getMyLandingDecision() {

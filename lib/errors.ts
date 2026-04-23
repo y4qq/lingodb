@@ -17,7 +17,3 @@ export class ConflictError extends AppError {
 export class NotFoundError extends AppError {
   readonly kind = "not_found" as const;
 }
-
-export class ForbiddenError extends AppError {
-  readonly kind = "forbidden" as const;
-}
