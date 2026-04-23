@@ -13,14 +13,14 @@ export function UnitCard({ href, unitNumber, title, description }: Props) {
     <Link
       href={href}
       className={cn(
-        "group flex items-center gap-4 rounded-2xl border-2 border-border bg-card px-5 py-6 text-left",
-        "transition-colors hover:border-foreground/20",
-        "focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring/50",
+        "group flex items-center gap-5 border-b-2 border-border bg-card px-8 py-7 text-left",
+        "transition-colors hover:bg-muted/40",
+        "focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:ring-inset",
       )}
     >
       <div
         className={cn(
-          "flex size-6 shrink-0 items-center justify-center rounded-md font-heading text-xs font-black bg-chart-2 text-white"
+          "flex size-8 shrink-0 items-center justify-center rounded-md font-heading text-sm font-black bg-chart-2 text-white",
         )}
       >
         {unitNumber}

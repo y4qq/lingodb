@@ -6,8 +6,8 @@ import {
   CommentsPanel,
   CommentsSidebar,
 } from "@/components/app/comments-panel";
+import { FloatingPanel } from "@/components/app/floating-panel";
 import { UnitCard } from "@/components/app/unit-card";
-import { PageHeaderSkeleton } from "@/components/common/page-header-skeleton";
 import { Skeleton } from "@/components/ui/skeleton";
 
 type Props = { params: Promise<{ slug: string }> };
@@ -28,44 +28,51 @@ async function Content({ params }: Props) {
   const { comments, currentUserId } = await getCourseCommentsForMe(course.id);
 
   return (
-    <div className="mx-auto flex w-full max-w-6xl flex-col gap-6">
+    <>
+      <div className="relative z-20 flex h-dvh flex-col gap-6 p-6 lg:flex-row lg:pl-0">
+        <FloatingPanel className="flex-1 rounded-none shadow-lg border-0 lg:rounded-xl lg:border-2">
+          <header className="border-b-2 border-border px-6 py-5">
+            <h1 className="font-heading text-xl font-bold tracking-tight">
+              {course.title}
+            </h1>
+          </header>
 
-      <div className="grid  lg:grid-cols-8 lg:items-start">
-        <section className="lg:col-span-5 border-x-2 px-16">
-          {course.units.length === 0 ? (
-            <p className="py-10 text-sm text-muted-foreground">No units yet.</p>
-          ) : (
-            <div className="flex flex-col gap-16 py-10">
-              {course.units.map((unit) => (
-                <section key={unit.id} className="flex flex-col gap-5">
-                  <h2 className="font-heading text-xl font-bold tracking-tight">
-                    {unit.title}
-                  </h2>
+          <div className="flex-1 overflow-auto">
+            {course.units.length === 0 ? (
+              <p className="px-6 py-10 text-base text-muted-foreground">
+                No units yet.
+              </p>
+            ) : (
+              course.units.map((unit) => (
+                <section key={unit.id} className="flex flex-col">
+                  <div className="border-b-2 border-border bg-muted/40 px-6 py-3">
+                    <h2 className="font-heading text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                      {unit.title}
+                    </h2>
+                  </div>
                   {unit.lessons.length === 0 ? (
-                    <p className="text-sm text-muted-foreground">
+                    <p className="border-b-2 border-border px-6 py-8 text-base text-muted-foreground">
                       No lessons yet.
                     </p>
                   ) : (
-                    <div className="flex flex-col gap-4">
-                      {unit.lessons.map((lesson, lessonIndex) => (
-                        <UnitCard
-                          key={lesson.id}
-                          href={`/courses/${course.slug}/${unit.slug}/${lesson.slug}`}
-                          unitNumber={lessonIndex + 1}
-                          title={lesson.title}
-                          description={lesson.description}
-                        />
-                      ))}
-                    </div>
+                    unit.lessons.map((lesson, lessonIndex) => (
+                      <UnitCard
+                        key={lesson.id}
+                        href={`/courses/${course.slug}/${unit.slug}/${lesson.slug}`}
+                        unitNumber={lessonIndex + 1}
+                        title={lesson.title}
+                        description={lesson.description}
+                      />
+                    ))
                   )}
                 </section>
-              ))}
-            </div>
-          )}
-        </section>
+              ))
+            )}
+          </div>
+        </FloatingPanel>
 
         <CommentsSidebar
-          className="sticky top-0 hidden h-[100vh] w-full lg:col-span-3 lg:flex"
+          className="hidden w-max shrink-0 lg:flex rounded-xl shadow-lg"
           target={{ kind: "course", courseId: course.id }}
           initialComments={comments}
           currentUserId={currentUserId}
@@ -79,22 +86,24 @@ async function Content({ params }: Props) {
           currentUserId={currentUserId}
         />
       </div>
-    </div>
+    </>
   );
 }
 
 function Fallback() {
   return (
-    <div className="mx-auto flex w-full max-w-5xl flex-col gap-6">
-      <PageHeaderSkeleton />
-      <div className="grid gap-6 lg:grid-cols-3">
-        <section className="flex flex-col gap-4 lg:col-span-2">
-          <Skeleton className="h-48 w-full rounded-4xl" />
-          <Skeleton className="h-48 w-full rounded-4xl" />
-          <Skeleton className="h-48 w-full rounded-4xl" />
-        </section>
-        <Skeleton className="hidden h-full w-full rounded-4xl lg:col-span-1 lg:block" />
-      </div>
+    <div className="relative z-20 flex h-dvh flex-col gap-6 p-6 lg:flex-row lg:pl-0">
+      <FloatingPanel className="flex-1 rounded-none border-0 lg:rounded-md lg:border-2">
+        <div className="border-b-2 border-border px-6 py-5">
+          <Skeleton className="h-6 w-48" />
+        </div>
+        <div className="flex-1 overflow-auto">
+          <Skeleton className="h-20 w-full rounded-none" />
+          <Skeleton className="h-20 w-full rounded-none" />
+          <Skeleton className="h-20 w-full rounded-none" />
+        </div>
+      </FloatingPanel>
+      <div className="hidden w-96 shrink-0 lg:block" />
     </div>
   );
 }

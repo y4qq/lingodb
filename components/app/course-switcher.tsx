@@ -34,7 +34,7 @@ export function CourseSwitcher({ enrollments, activeSlug }: Props) {
           <PopoverTrigger asChild>
             <SidebarMenuButton
               tooltip={label}
-              className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+              className="rounded-none border-b-2 border-border px-6 h-14 data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
             >
               <Library />
               <span className="flex-1 truncate text-left">{label}</span>

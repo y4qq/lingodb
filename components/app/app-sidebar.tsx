@@ -29,30 +29,32 @@ type Props = {
   enrollments: EnrollmentNavItem[];
 };
 
+const navButtonClass =
+  "rounded-none border-b-2 border-border px-6 h-14 data-active:ring-0";
+
 export function AppSidebar({ userEmail, userName, enrollments }: Props) {
   const pathname = usePathname();
   const slugMatch = pathname.match(/^\/courses\/([^/]+)/);
   const activeSlug = slugMatch?.[1] ?? enrollments[0]?.slug ?? null;
 
   return (
-    <Sidebar >
-      <SidebarHeader>
-        <div className="flex items-center">
-          <span className="text-2xl pt-3 font-extrabold text-chart-3 tracking-tight ">
-            Fluent Fast
-          </span>
-        </div>
+    <Sidebar variant="floating">
+      <SidebarHeader className="h-[70px] flex-row items-center border-b-2 border-border py-0 gap-0">
+        <span className="font-heading text-2xl font-extrabold tracking-tight text-chart-3">
+          Fluent Fast
+        </span>
       </SidebarHeader>
       <SidebarContent>
-        <SidebarGroup>
+        <SidebarGroup className="p-0">
           <SidebarGroupContent>
-            <SidebarMenu>
+            <SidebarMenu className="gap-0">
               <SidebarMenuItem>
                 {activeSlug ? (
                   <SidebarMenuButton
                     asChild
                     isActive={pathname.startsWith(`/courses/${activeSlug}`)}
                     tooltip="Lessons"
+                    className={navButtonClass}
                   >
                     <Link href={`/courses/${activeSlug}`}>
                       <BookOpen />
@@ -60,20 +62,32 @@ export function AppSidebar({ userEmail, userName, enrollments }: Props) {
                     </Link>
                   </SidebarMenuButton>
                 ) : (
-                  <SidebarMenuButton disabled tooltip="Lessons">
+                  <SidebarMenuButton
+                    disabled
+                    tooltip="Lessons"
+                    className={navButtonClass}
+                  >
                     <BookOpen />
                     <span className="uppercase">Lessons</span>
                   </SidebarMenuButton>
                 )}
               </SidebarMenuItem>
               <SidebarMenuItem>
-                <SidebarMenuButton disabled tooltip="Flashcards">
+                <SidebarMenuButton
+                  disabled
+                  tooltip="Flashcards"
+                  className={navButtonClass}
+                >
                   <Layers />
                   <span className="uppercase">Flashcards</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
-                <SidebarMenuButton disabled tooltip="Review">
+                <SidebarMenuButton
+                  disabled
+                  tooltip="Review"
+                  className={navButtonClass}
+                >
                   <RotateCcw />
                   <span className="uppercase">Review</span>
                 </SidebarMenuButton>
@@ -82,7 +96,7 @@ export function AppSidebar({ userEmail, userName, enrollments }: Props) {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
-      <SidebarFooter>
+      <SidebarFooter className="border-t-2 border-border p-0 gap-0">
         <CourseSwitcher enrollments={enrollments} activeSlug={activeSlug} />
         <UserMenu email={userEmail} name={userName} />
       </SidebarFooter>

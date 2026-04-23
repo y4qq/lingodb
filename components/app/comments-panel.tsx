@@ -9,6 +9,7 @@ import {
 import type { CommentWithThread } from "@/lib/domains/comments/queries/public";
 import { CommentItem } from "@/components/app/comment-item";
 import { CommentReplyForm } from "@/components/app/comment-reply-form";
+import { FloatingPanel } from "@/components/app/floating-panel";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
@@ -80,12 +81,7 @@ export function CommentsSidebar({
   className,
 }: CommentsPanelProps & { className?: string }) {
   return (
-    <aside
-      className={cn(
-        "flex flex-col overflow-hidden border-r-2 border-border ",
-        className,
-      )}
-    >
+    <FloatingPanel className={className}>
       <div className="border-b-2 px-6 py-5">
         <h2 className="font-heading text-xl font-bold tracking-tight">
           Comments
@@ -93,7 +89,7 @@ export function CommentsSidebar({
       </div>
       <CommentsList comments={initialComments} currentUserId={currentUserId} />
       <CommentForm target={target} />
-    </aside>
+    </FloatingPanel>
   );
 }
 
@@ -174,7 +170,7 @@ function CommentForm({ target }: { target: CommentsPanelProps["target"] }) {
     <form
       ref={formRef}
       action={formAction}
-      className="border-t-2 bg-background px-6 py-5 flex flex-col gap-3"
+      className="border-t-2 px-6 py-5 flex flex-col gap-3"
     >
       {target.kind === "course" ? (
         <input type="hidden" name="courseId" value={target.courseId} />

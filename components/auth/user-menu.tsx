@@ -44,7 +44,7 @@ export function UserMenu({ email, name }: Props) {
             <SidebarMenuButton
               size="lg"
               tooltip={displayName}
-              className="data-[state=open]:bg-sidebar-accent"
+              className="rounded-none px-6 data-[state=open]:bg-sidebar-accent"
             >
               <Avatar size="sm">
                 <AvatarFallback>{initials}</AvatarFallback>
