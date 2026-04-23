@@ -5,6 +5,7 @@ import { AdminPageHeader } from "@/components/admin/admin-page-header";
 import { AudioSelectionProvider } from "@/components/admin/audio-selection-provider";
 import { AudioVersionsHeaderActions } from "@/components/admin/audio-versions-header-actions";
 import { AudioVersionsTable } from "@/components/admin/audio-versions-table";
+import { LessonEditDialog } from "@/components/admin/lesson-edit-dialog";
 import {
   AudioPlayerBar,
   AudioPlayerProvider,
@@ -59,6 +60,18 @@ async function Content({ params }: Props) {
                   {lesson.isPublished ? "Published" : "Draft"}
                 </Badge>
               </>
+            }
+            action={
+              <LessonEditDialog
+                lesson={{
+                  id: lesson.id,
+                  title: lesson.title,
+                  description: lesson.description,
+                  icon: lesson.icon,
+                  position: lesson.position,
+                  isPublished: lesson.isPublished,
+                }}
+              />
             }
           />
           <FloatingPanel className="flex-1">

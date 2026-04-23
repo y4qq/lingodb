@@ -8,6 +8,7 @@ import {
   LayoutDashboard,
   LogOut,
 } from "lucide-react";
+import { letterColor } from "@/lib/letter-color";
 import { createClient } from "@/lib/supabase/client";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
@@ -46,6 +47,11 @@ export function UserMenu({
   const initials = getInitials(name ?? email);
   const displayName = name?.trim() || email.split("@")[0];
   const firstName = displayName.split(/\s+/)[0];
+  const color = letterColor(displayName);
+  const avatarStyle = {
+    backgroundColor: color.background,
+    color: color.foreground,
+  };
 
   async function logout() {
     const supabase = createClient();
@@ -60,7 +66,7 @@ export function UserMenu({
           <DropdownMenuTrigger asChild>
             <SidebarMenuButton tooltip={displayName} className={triggerClass}>
               <Avatar size="sm">
-                <AvatarFallback>{initials}</AvatarFallback>
+                <AvatarFallback style={avatarStyle}>{initials}</AvatarFallback>
               </Avatar>
               <span className="flex-1 truncate text-left uppercase">
                 {firstName}

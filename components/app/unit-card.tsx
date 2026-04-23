@@ -4,21 +4,21 @@ import { cn } from "@/lib/utils";
 
 type Props = {
   href: string;
-  unitNumber: number;
+  icon: string | null;
   title: string;
   description?: string | null;
 };
 
-export function UnitCard({ href, unitNumber, title, description }: Props) {
+export function UnitCard({ href, icon, title, description }: Props) {
   return (
     <FloatingPanelCard asChild>
       <Link href={href}>
         <div
           className={cn(
-            "flex size-8 shrink-0 items-center justify-center rounded-md bg-chart-2 font-heading text-sm font-black text-white",
+            "flex size-12 shrink-0 items-center justify-center text-4xl leading-none",
           )}
         >
-          {unitNumber}
+          {icon ?? ""}
         </div>
         <div className="flex min-w-0 flex-col gap-1">
           <div className="font-heading text-base font-semibold">{title}</div>

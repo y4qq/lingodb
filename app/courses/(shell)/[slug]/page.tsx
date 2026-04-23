@@ -59,11 +59,11 @@ async function Content({ params }: Props) {
                       No lessons yet.
                     </p>
                   ) : (
-                    unit.lessons.map((lesson, lessonIndex) => (
+                    unit.lessons.map((lesson) => (
                       <UnitCard
                         key={lesson.id}
                         href={`/courses/${course.slug}/${unit.slug}/${lesson.slug}`}
-                        unitNumber={lessonIndex + 1}
+                        icon={lesson.icon}
                         title={lesson.title}
                         description={lesson.description}
                       />

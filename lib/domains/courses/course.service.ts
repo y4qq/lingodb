@@ -11,7 +11,7 @@ import {
   userCourses,
 } from "@/supabase/schema";
 import type { CreateCourseInput, UpdateCourseInput } from "./course.validation";
-import type { CreateLessonInput } from "./lesson.validation";
+import type { CreateLessonInput, UpdateLessonInput } from "./lesson.validation";
 import type { CreateUnitInput, UpdateUnitInput } from "./unit.validation";
 
 export async function listPublishedCourses() {
@@ -462,10 +462,32 @@ export async function createLesson(input: CreateLessonInput) {
       slug: input.slug,
       title: input.title,
       description: input.description,
+      icon: input.icon,
       position,
     })
     .returning();
   return lesson;
+}
+
+export async function updateLesson(
+  id: string,
+  input: Omit<UpdateLessonInput, "id">,
+) {
+  const [updated] = await db
+    .update(lessons)
+    .set({
+      title: input.title,
+      description: input.description ?? null,
+      icon: input.icon,
+      position: input.position,
+      isPublished: input.isPublished,
+    })
+    .where(eq(lessons.id, id))
+    .returning();
+  if (!updated) {
+    throw new NotFoundError(`Lesson ${id} not found`);
+  }
+  return updated;
 }
 
 export async function updateUnit(

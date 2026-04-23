@@ -2,10 +2,11 @@
 
 import { useActionState, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Plus } from "lucide-react";
-import { createLesson } from "@/lib/domains/courses/actions/admin";
+import { Settings } from "lucide-react";
+import { updateLesson } from "@/lib/domains/courses/actions/admin";
 import { FormField } from "@/components/admin/form-field";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
@@ -16,40 +17,49 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 
-export function LessonCreateDialog({ unitId }: { unitId: string }) {
+type Lesson = {
+  id: string;
+  title: string;
+  description: string | null;
+  icon: string | null;
+  position: number;
+  isPublished: boolean;
+};
+
+export function LessonEditDialog({ lesson }: { lesson: Lesson }) {
   const [open, setOpen] = useState(false);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button>
-          <Plus />
-          Create lesson
+        <Button variant="outline" size="icon-sm" aria-label="Edit lesson">
+          <Settings />
         </Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Create lesson</DialogTitle>
+          <DialogTitle>Edit lesson</DialogTitle>
           <DialogDescription>
-            Starts as a draft at the end of the lesson list.
+            Update this lesson&apos;s settings. Slug cannot be changed.
           </DialogDescription>
         </DialogHeader>
-        <CreateLessonForm unitId={unitId} onClose={() => setOpen(false)} />
+        <EditLessonForm lesson={lesson} onClose={() => setOpen(false)} />
       </DialogContent>
     </Dialog>
   );
 }
 
-function CreateLessonForm({
-  unitId,
+function EditLessonForm({
+  lesson,
   onClose,
 }: {
-  unitId: string;
+  lesson: Lesson;
   onClose: () => void;
 }) {
-  const [state, action, isPending] = useActionState(createLesson, undefined);
+  const [state, action, isPending] = useActionState(updateLesson, undefined);
   const router = useRouter();
 
   useEffect(() => {
@@ -64,19 +74,15 @@ function CreateLessonForm({
 
   return (
     <form action={action} className="flex flex-col gap-4">
-      <input type="hidden" name="unitId" value={unitId} />
-
-      <FormField
-        id="slug"
-        label="Slug"
-        description="lowercase-kebab-case; unique within this unit"
-        error={fieldErrors?.slug?.[0]}
-      >
-        <Input id="slug" name="slug" required placeholder="hello" />
-      </FormField>
+      <input type="hidden" name="id" value={lesson.id} />
 
       <FormField id="title" label="Title" error={fieldErrors?.title?.[0]}>
-        <Input id="title" name="title" required placeholder="Hello" />
+        <Input
+          id="title"
+          name="title"
+          defaultValue={lesson.title}
+          required
+        />
       </FormField>
 
       <FormField
@@ -88,6 +94,7 @@ function CreateLessonForm({
         <Input
           id="icon"
           name="icon"
+          defaultValue={lesson.icon ?? ""}
           required
           maxLength={16}
           autoComplete="off"
@@ -101,8 +108,41 @@ function CreateLessonForm({
         description="Optional"
         error={fieldErrors?.description?.[0]}
       >
-        <Textarea id="description" name="description" rows={3} />
+        <Textarea
+          id="description"
+          name="description"
+          rows={3}
+          defaultValue={lesson.description ?? ""}
+        />
       </FormField>
+
+      <FormField
+        id="position"
+        label="Position"
+        description="Ordering within the unit (lower = earlier)"
+        error={fieldErrors?.position?.[0]}
+      >
+        <Input
+          id="position"
+          name="position"
+          type="number"
+          min={0}
+          step={1}
+          defaultValue={lesson.position}
+          required
+        />
+      </FormField>
+
+      <div className="flex items-center gap-2">
+        <Checkbox
+          id="isPublished"
+          name="isPublished"
+          defaultChecked={lesson.isPublished}
+        />
+        <Label htmlFor="isPublished" className="cursor-pointer">
+          Published
+        </Label>
+      </div>
 
       {summaryError && (
         <p className="text-destructive text-sm">{summaryError}</p>
@@ -113,7 +153,7 @@ function CreateLessonForm({
           Cancel
         </Button>
         <Button type="submit" disabled={isPending}>
-          {isPending ? "Creating…" : "Create lesson"}
+          {isPending ? "Saving…" : "Save changes"}
         </Button>
       </DialogFooter>
     </form>

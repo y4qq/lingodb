@@ -26,7 +26,10 @@ function FloatingPanelLayoutSide({
   return (
     <aside
       data-slot="floating-panel-layout-side"
-      className={cn("hidden w-96 shrink-0 lg:block", className)}
+      className={cn(
+        "hidden w-96 shrink-0 min-h-0 flex-col lg:flex",
+        className,
+      )}
       {...props}
     />
   )
@@ -150,7 +153,7 @@ function FloatingPanelDivider({
     <Comp
       data-slot="floating-panel-divider"
       className={cn(
-        "border-b-2 border-border bg-muted/40 px-6 py-3 font-heading text-xs font-bold uppercase tracking-wider text-muted-foreground",
+        "flex h-14 items-center border-b-2 border-border bg-muted/40 px-6 font-heading text-base font-semibold uppercase tracking-wider text-muted-foreground",
         className,
       )}
       {...props}

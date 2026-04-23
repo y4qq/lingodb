@@ -19,7 +19,7 @@ import {
 } from "../audio.validation";
 import * as courses from "../course.service";
 import { createCourseSchema, updateCourseSchema } from "../course.validation";
-import { createLessonSchema } from "../lesson.validation";
+import { createLessonSchema, updateLessonSchema } from "../lesson.validation";
 import { createUnitSchema, updateUnitSchema } from "../unit.validation";
 
 const ADMIN_COURSES_ROUTE = "/admin/courses";
@@ -110,6 +110,33 @@ export async function createLesson(
       return { id: lesson.id, slug: lesson.slug };
     },
     onSuccess: () => revalidatePath("/admin", "layout"),
+    extra: { input: parsed.data },
+  });
+}
+
+export async function updateLesson(
+  _prev: ActionResult<{ id: string }> | undefined,
+  formData: FormData,
+): Promise<ActionResult<{ id: string }>> {
+  const parsed = updateLessonSchema.safeParse(Object.fromEntries(formData));
+  if (!parsed.success) {
+    return { ok: false, fieldErrors: toFieldErrors(parsed.error) };
+  }
+
+  return runAdminAction({
+    actionName: "updateLesson",
+    execute: async () => {
+      const { id, ...updates } = parsed.data;
+      const lesson = await courses.updateLesson(id, updates);
+      return { id: lesson.id };
+    },
+    // Broad revalidate: lesson paths depend on multiple parent slugs we'd need
+    // another lookup to resolve. Admin + public course surfaces re-fetch on
+    // next navigation.
+    onSuccess: () => {
+      revalidatePath("/admin", "layout");
+      revalidatePath("/courses", "layout");
+    },
     extra: { input: parsed.data },
   });
 }

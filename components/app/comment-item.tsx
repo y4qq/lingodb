@@ -3,6 +3,7 @@
 import { formatDistanceToNow } from "date-fns";
 import { MessageSquare } from "lucide-react";
 import type { CommentWithMeta } from "@/lib/domains/comments/queries/public";
+import { letterColor } from "@/lib/letter-color";
 import { CommentDeleteButton } from "@/components/app/comment-delete-button";
 import { CommentReactions } from "@/components/app/comment-reactions";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -31,12 +32,19 @@ export function CommentItem({
   const isDeleted = comment.deletedAt !== null;
   const isApproved = comment.moderationStatus === "approved";
   const isOwnPending = isOwn && comment.moderationStatus === "pending";
+  const color = letterColor(name);
+  const avatarStyle = {
+    backgroundColor: color.background,
+    color: color.foreground,
+  };
 
   if (isDeleted) {
     return (
       <div className="flex gap-3">
         <Avatar>
-          <AvatarFallback>{name[0]?.toUpperCase() ?? "?"}</AvatarFallback>
+          <AvatarFallback style={avatarStyle}>
+            {name[0]?.toUpperCase() ?? "?"}
+          </AvatarFallback>
         </Avatar>
         <div className="flex min-w-0 flex-1 items-center">
           <p className="text-muted-foreground text-base italic">
@@ -55,7 +63,9 @@ export function CommentItem({
   return (
     <div className="flex gap-3">
       <Avatar>
-        <AvatarFallback>{name[0]?.toUpperCase() ?? "?"}</AvatarFallback>
+        <AvatarFallback style={avatarStyle}>
+          {name[0]?.toUpperCase() ?? "?"}
+        </AvatarFallback>
       </Avatar>
       <div className="flex min-w-0 flex-1 flex-col gap-1.5">
         <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">

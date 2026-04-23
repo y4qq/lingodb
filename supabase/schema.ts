@@ -96,6 +96,7 @@ export const lessons = pgTable('lessons', {
   slug: text('slug').notNull(),
   title: text('title').notNull(),
   description: text('description'),
+  icon: text('icon'),
   position: integer('position').notNull(),
   isPublished: boolean('is_published').notNull().default(false),
   ...timestamps,

@@ -86,7 +86,7 @@ export function CommentsSidebar({
   className,
 }: CommentsPanelProps & { className?: string }) {
   return (
-    <FloatingPanel className={className}>
+    <FloatingPanel className={cn("flex-1", className)}>
       <FloatingPanelHeader>
         <FloatingPanelTitle asChild>
           <h2>Comments</h2>
