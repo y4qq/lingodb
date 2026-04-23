@@ -25,7 +25,7 @@ export async function ensureProfile(input: { id: string; email: string }) {
 export async function listUserEnrollments(userId: string) {
   return db.query.userCourses.findMany({
     where: eq(userCourses.userId, userId),
-    with: { course: true },
+    with: { course: { with: { targetLanguage: true } } },
     orderBy: desc(userCourses.enrolledAt),
   });
 }

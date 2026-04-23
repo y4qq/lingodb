@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BookOpen, Layers, RotateCcw } from "lucide-react";
+import { BookOpen } from "lucide-react";
 import { UserMenu } from "@/components/auth/user-menu";
 import { CourseSwitcher } from "@/components/app/course-switcher";
 import {
@@ -21,18 +21,20 @@ export type EnrollmentNavItem = {
   id: string;
   slug: string;
   title: string;
+  targetLanguageCode: string;
 };
 
 type Props = {
   userEmail: string;
   userName: string | null;
   enrollments: EnrollmentNavItem[];
+  isAdmin?: boolean;
 };
 
 const navButtonClass =
   "rounded-none border-b-2 border-border px-6 h-14 data-active:ring-0";
 
-export function AppSidebar({ userEmail, userName, enrollments }: Props) {
+export function AppSidebar({ userEmail, userName, enrollments, isAdmin = false }: Props) {
   const pathname = usePathname();
   const slugMatch = pathname.match(/^\/courses\/([^/]+)/);
   const activeSlug = slugMatch?.[1] ?? enrollments[0]?.slug ?? null;
@@ -76,33 +78,13 @@ export function AppSidebar({ userEmail, userName, enrollments }: Props) {
                   </SidebarMenuButton>
                 )}
               </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  disabled
-                  tooltip="Flashcards"
-                  className={navButtonClass}
-                >
-                  <Layers />
-                  <span className="uppercase">Flashcards</span>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  disabled
-                  tooltip="Review"
-                  className={navButtonClass}
-                >
-                  <RotateCcw />
-                  <span className="uppercase">Review</span>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
       <SidebarFooter className="border-t-2 border-border p-0 gap-0">
         <CourseSwitcher enrollments={enrollments} activeSlug={activeSlug} />
-        <UserMenu email={userEmail} name={userName} />
+        <UserMenu email={userEmail} name={userName} isAdmin={isAdmin} />
       </SidebarFooter>
     </Sidebar>
   );

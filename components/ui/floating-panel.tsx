@@ -54,7 +54,7 @@ function FloatingPanel({ className, ...props }: React.ComponentProps<"div">) {
       data-slot="floating-panel"
       className={cn(
         "flex min-h-0 flex-col overflow-hidden bg-background shadow-lg",
-        "rounded-none border-0 lg:rounded-xl lg:border-2 lg:border-border",
+        "rounded-none border-0 lg:rounded-lg lg:border-2 lg:border-border",
         className,
       )}
       {...props}

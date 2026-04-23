@@ -1,7 +1,13 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ChevronsUpDown, LogOut } from "lucide-react";
+import {
+  ArrowLeftFromLine,
+  ChevronRight,
+  LayoutDashboard,
+  LogOut,
+} from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
@@ -22,13 +28,24 @@ import {
 type Props = {
   email: string;
   name: string | null;
+  isAdmin?: boolean;
+  adminContext?: boolean;
 };
 
-export function UserMenu({ email, name }: Props) {
+const triggerClass =
+  "rounded-none px-6 h-14 data-[state=open]:bg-sidebar-accent";
+
+export function UserMenu({
+  email,
+  name,
+  isAdmin = false,
+  adminContext = false,
+}: Props) {
   const router = useRouter();
   const { isMobile } = useSidebar();
   const initials = getInitials(name ?? email);
   const displayName = name?.trim() || email.split("@")[0];
+  const firstName = displayName.split(/\s+/)[0];
 
   async function logout() {
     const supabase = createClient();
@@ -37,25 +54,18 @@ export function UserMenu({ email, name }: Props) {
   }
 
   return (
-    <SidebarMenu>
+    <SidebarMenu className="gap-0">
       <SidebarMenuItem>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <SidebarMenuButton
-              size="lg"
-              tooltip={displayName}
-              className="rounded-none px-6 data-[state=open]:bg-sidebar-accent"
-            >
+            <SidebarMenuButton tooltip={displayName} className={triggerClass}>
               <Avatar size="sm">
                 <AvatarFallback>{initials}</AvatarFallback>
               </Avatar>
-              <div className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-medium">{displayName}</span>
-                <span className="text-muted-foreground truncate text-xs">
-                  {email}
-                </span>
-              </div>
-              <ChevronsUpDown className="ml-auto size-4 opacity-60" />
+              <span className="flex-1 truncate text-left uppercase">
+                {firstName}
+              </span>
+              <ChevronRight className="ml-auto size-4 opacity-60" />
             </SidebarMenuButton>
           </DropdownMenuTrigger>
           <DropdownMenuContent
@@ -75,6 +85,22 @@ export function UserMenu({ email, name }: Props) {
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
+            {adminContext ? (
+              <DropdownMenuItem asChild>
+                <Link href="/courses" className="cursor-pointer">
+                  <ArrowLeftFromLine />
+                  Exit admin
+                </Link>
+              </DropdownMenuItem>
+            ) : isAdmin ? (
+              <DropdownMenuItem asChild>
+                <Link href="/admin" className="cursor-pointer">
+                  <LayoutDashboard />
+                  Admin dashboard
+                </Link>
+              </DropdownMenuItem>
+            ) : null}
+            {(adminContext || isAdmin) && <DropdownMenuSeparator />}
             <DropdownMenuItem onClick={logout}>
               <LogOut />
               Log out

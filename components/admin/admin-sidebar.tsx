@@ -3,12 +3,7 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import {
-  ArrowLeftFromLine,
-  BookOpen,
-  LayoutDashboard,
-  MessageSquare,
-} from "lucide-react";
+import { BookOpen, LayoutDashboard, MessageSquare } from "lucide-react";
 import { UserMenu } from "@/components/auth/user-menu";
 import {
   Sidebar,
@@ -91,22 +86,8 @@ export function AdminSidebar({ userEmail, userName }: Props) {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
-      <SidebarFooter className="border-t-2 border-border p-0 gap-0">
-        <SidebarMenu className="gap-0">
-          <SidebarMenuItem>
-            <SidebarMenuButton
-              asChild
-              tooltip="Exit admin"
-              className={navButtonClass}
-            >
-              <Link href="/courses">
-                <ArrowLeftFromLine />
-                <span className="uppercase">Exit admin</span>
-              </Link>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
-        <UserMenu email={userEmail} name={userName} />
+      <SidebarFooter className="border-t-2 border-border p-0">
+        <UserMenu email={userEmail} name={userName} adminContext />
       </SidebarFooter>
     </Sidebar>
   );

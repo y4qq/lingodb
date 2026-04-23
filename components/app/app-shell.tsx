@@ -26,6 +26,7 @@ async function AppShellInner({ children }: { children: React.ReactNode }) {
     id: e.courseId,
     slug: e.course.slug,
     title: e.course.title,
+    targetLanguageCode: e.course.targetLanguage.code,
   }));
 
   return (
@@ -35,6 +36,7 @@ async function AppShellInner({ children }: { children: React.ReactNode }) {
           userEmail={profile.email}
           userName={profile.displayName}
           enrollments={navItems}
+          isAdmin={profile.role === "admin"}
         />
         <SidebarInset>
           <div className="flex flex-1 flex-col ">{children}</div>
