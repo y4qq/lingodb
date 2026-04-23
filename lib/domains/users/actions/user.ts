@@ -94,10 +94,10 @@ export async function setMyDisplayName(
 }
 
 export async function completeOnboarding(
-  _prev: ActionResult<{ courseSlug: string }> | undefined,
+  _prev: ActionResult<{ displayName: string }> | undefined,
   formData: FormData,
-): Promise<ActionResult<{ courseSlug: string }>> {
-  const parsed = courseIdSchema.safeParse(Object.fromEntries(formData));
+): Promise<ActionResult<{ displayName: string }>> {
+  const parsed = displayNameSchema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) {
     return { ok: false, fieldErrors: toFieldErrors(parsed.error) };
   }
@@ -105,13 +105,9 @@ export async function completeOnboarding(
     actionName: "completeOnboarding",
     extra: { input: parsed.data },
     execute: async (userId) => {
-      const { courseSlug } = await usersService.enrollUserInCourse(
-        userId,
-        parsed.data.courseId,
-        { setActive: true },
-      );
+      await usersService.setDisplayName(userId, parsed.data.name);
       await usersService.markOnboardingComplete(userId);
-      return { courseSlug };
+      return { displayName: parsed.data.name };
     },
     onSuccess: () => revalidatePath("/", "layout"),
   });
