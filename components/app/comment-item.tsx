@@ -23,8 +23,7 @@ export function CommentItem({
   canReply = false,
   onReplyClick,
 }: CommentItemProps) {
-  const name =
-    comment.author.displayName?.trim() || comment.author.email.split("@")[0];
+  const name = comment.author.displayName?.trim() || "Learner";
   const when = formatDistanceToNow(new Date(comment.createdAt), {
     addSuffix: true,
   });

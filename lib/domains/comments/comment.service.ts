@@ -57,7 +57,7 @@ export async function listVisibleCourseComments(
     orderBy: asc(comments.createdAt),
     with: {
       author: {
-        columns: { id: true, displayName: true, email: true },
+        columns: { id: true, displayName: true },
       },
     },
   });
@@ -76,7 +76,7 @@ export async function listVisibleUnitComments(
     orderBy: asc(comments.createdAt),
     with: {
       author: {
-        columns: { id: true, displayName: true, email: true },
+        columns: { id: true, displayName: true },
       },
     },
   });
@@ -95,7 +95,7 @@ export async function listVisibleRepliesForParents(
     orderBy: asc(comments.createdAt),
     with: {
       author: {
-        columns: { id: true, displayName: true, email: true },
+        columns: { id: true, displayName: true },
       },
     },
   });

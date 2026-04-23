@@ -1,4 +1,20 @@
 {
+  "name": "fluent",
+  "description": "Language-learning platform with audio lessons, moderated comments, and admin content management. Built with Next.js, Supabase, and Drizzle ORM.",
+  "author": "Fred Jones",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/y4qq/fluent-fast-2.git"
+  },
+  "keywords": [
+    "nextjs",
+    "supabase",
+    "drizzle",
+    "typescript",
+    "language-learning",
+    "tailwind",
+    "shadcn"
+  ],
   "private": true,
   "scripts": {
     "dev": "next dev",
