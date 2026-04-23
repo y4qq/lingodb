@@ -1,86 +1,117 @@
 import { Suspense } from "react";
+import Link from "next/link";
 import { listAdminCoursesWithEnrollments } from "@/lib/domains/courses/queries/admin";
-import { PageHeader } from "@/components/common/page-header";
 import { CourseCreateButton } from "@/components/admin/course-create-button";
-import { DataTable, type Column } from "@/components/common/data-table";
 import { Badge } from "@/components/ui/badge";
+import {
+  FloatingPanel,
+  FloatingPanelBody,
+  FloatingPanelDescription,
+  FloatingPanelHeader,
+  FloatingPanelHeaderAction,
+  FloatingPanelLayoutFull,
+  FloatingPanelTable,
+  FloatingPanelTableBody,
+  FloatingPanelTableCell,
+  FloatingPanelTableHead,
+  FloatingPanelTableHeader,
+  FloatingPanelTableRow,
+  FloatingPanelTitle,
+} from "@/components/ui/floating-panel";
 import { Skeleton } from "@/components/ui/skeleton";
-
-type CourseRow = Awaited<
-  ReturnType<typeof listAdminCoursesWithEnrollments>
->[number];
-
-const columns: Column<CourseRow>[] = [
-  {
-    header: "Title",
-    cell: (c) => <span className="font-medium">{c.title}</span>,
-  },
-  {
-    header: "Languages",
-    cell: (c) => (
-      <span className="text-muted-foreground">
-        {c.baseLanguage.name} → {c.targetLanguage.name}
-      </span>
-    ),
-  },
-  {
-    header: "Slug",
-    cell: (c) => (
-      <span className="text-muted-foreground font-mono text-xs">{c.slug}</span>
-    ),
-  },
-  {
-    header: "Enrolled",
-    className: "w-24 text-right",
-    cell: (c) => (
-      <span className="text-muted-foreground tabular-nums">
-        {c.enrollmentCount}
-      </span>
-    ),
-  },
-  {
-    header: "Status",
-    cell: (c) => (
-      <Badge variant={c.isPublished ? "default" : "secondary"}>
-        {c.isPublished ? "Published" : "Draft"}
-      </Badge>
-    ),
-    className: "w-28",
-  },
-];
 
 export default function AdminCoursesPage() {
   return (
-    <>
-      <PageHeader
-        breadcrumbs={[
-          { href: "/admin", label: "Dashboard" },
-          { label: "Courses" },
-        ]}
-        title="Courses"
-        description="All courses, published and draft."
-        action={
-          <Suspense fallback={<Skeleton className="h-9 w-36" />}>
-            <CourseCreateButton />
+    <FloatingPanelLayoutFull>
+      <FloatingPanel className="flex-1 rounded-none border-0 shadow-lg lg:rounded-xl lg:border-2">
+        <FloatingPanelHeader>
+          <FloatingPanelTitle>Courses</FloatingPanelTitle>
+          <FloatingPanelDescription>
+            All courses, published and draft.
+          </FloatingPanelDescription>
+          <FloatingPanelHeaderAction>
+            <Suspense fallback={<Skeleton className="h-9 w-36" />}>
+              <CourseCreateButton />
+            </Suspense>
+          </FloatingPanelHeaderAction>
+        </FloatingPanelHeader>
+        <FloatingPanelBody>
+          <Suspense fallback={<CoursesListFallback />}>
+            <CoursesList />
           </Suspense>
-        }
-      />
-      <Suspense fallback={<Skeleton className="h-64 w-full" />}>
-        <CoursesList />
-      </Suspense>
-    </>
+        </FloatingPanelBody>
+      </FloatingPanel>
+    </FloatingPanelLayoutFull>
   );
 }
 
 async function CoursesList() {
   const rows = await listAdminCoursesWithEnrollments();
+
+  if (rows.length === 0) {
+    return (
+      <p className="px-8 py-10 text-base text-muted-foreground">
+        No courses yet. Create one to get started.
+      </p>
+    );
+  }
+
   return (
-    <DataTable
-      columns={columns}
-      data={rows}
-      rowKey={(c) => c.id}
-      rowHref={(c) => `/admin/courses/${c.slug}`}
-      empty="No courses yet. Create one to get started."
-    />
+    <FloatingPanelTable>
+      <FloatingPanelTableHeader>
+        <tr>
+          <FloatingPanelTableHead>Title</FloatingPanelTableHead>
+          <FloatingPanelTableHead>Languages</FloatingPanelTableHead>
+          <FloatingPanelTableHead>Slug</FloatingPanelTableHead>
+          <FloatingPanelTableHead className="w-28 text-right">
+            Enrolled
+          </FloatingPanelTableHead>
+          <FloatingPanelTableHead className="w-32">
+            Status
+          </FloatingPanelTableHead>
+        </tr>
+      </FloatingPanelTableHeader>
+      <FloatingPanelTableBody>
+        {rows.map((c) => (
+          <FloatingPanelTableRow key={c.id} className="relative cursor-pointer">
+            <FloatingPanelTableCell>
+              <Link
+                href={`/admin/courses/${c.slug}`}
+                tabIndex={-1}
+                aria-hidden
+                className="absolute inset-0"
+              />
+              <span className="font-heading font-semibold">{c.title}</span>
+            </FloatingPanelTableCell>
+            <FloatingPanelTableCell className="text-muted-foreground">
+              {c.baseLanguage.name} → {c.targetLanguage.name}
+            </FloatingPanelTableCell>
+            <FloatingPanelTableCell>
+              <span className="font-mono text-sm text-muted-foreground">
+                {c.slug}
+              </span>
+            </FloatingPanelTableCell>
+            <FloatingPanelTableCell className="text-right tabular-nums text-muted-foreground">
+              {c.enrollmentCount}
+            </FloatingPanelTableCell>
+            <FloatingPanelTableCell>
+              <Badge variant={c.isPublished ? "default" : "secondary"}>
+                {c.isPublished ? "Published" : "Draft"}
+              </Badge>
+            </FloatingPanelTableCell>
+          </FloatingPanelTableRow>
+        ))}
+      </FloatingPanelTableBody>
+    </FloatingPanelTable>
+  );
+}
+
+function CoursesListFallback() {
+  return (
+    <>
+      <Skeleton className="h-24 w-full rounded-none" />
+      <Skeleton className="h-24 w-full rounded-none" />
+      <Skeleton className="h-24 w-full rounded-none" />
+    </>
   );
 }

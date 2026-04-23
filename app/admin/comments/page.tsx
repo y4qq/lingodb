@@ -6,9 +6,21 @@ import {
   listAdminCommentsForModeration,
   type AdminModerationRow,
 } from "@/lib/domains/comments/queries/admin";
-import { PageHeader } from "@/components/common/page-header";
-import { DataTable, type Column } from "@/components/common/data-table";
 import { CommentModerationRowActions } from "@/components/admin/comment-moderation-row-actions";
+import {
+  FloatingPanel,
+  FloatingPanelBody,
+  FloatingPanelDescription,
+  FloatingPanelHeader,
+  FloatingPanelLayoutFull,
+  FloatingPanelTable,
+  FloatingPanelTableBody,
+  FloatingPanelTableCell,
+  FloatingPanelTableHead,
+  FloatingPanelTableHeader,
+  FloatingPanelTableRow,
+  FloatingPanelTitle,
+} from "@/components/ui/floating-panel";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 
@@ -29,34 +41,33 @@ export default async function AdminCommentsPage({ searchParams }: Props) {
   const status = parseStatusParam(rawStatus);
 
   return (
-    <>
-      <PageHeader
-        breadcrumbs={[
-          { href: "/admin", label: "Dashboard" },
-          { label: "Comments" },
-        ]}
-        title="Comments"
-        description="Moderate user-submitted comments on courses and units."
-      />
-
-      <Suspense fallback={<Skeleton className="h-10 w-full max-w-xl" />}>
-        <ModerationTabs active={status} />
-      </Suspense>
-
-      <Suspense
-        key={status}
-        fallback={<Skeleton className="h-64 w-full" />}
-      >
-        <ModerationList status={status} />
-      </Suspense>
-    </>
+    <FloatingPanelLayoutFull>
+      <FloatingPanel className="flex-1 rounded-none border-0 shadow-lg lg:rounded-xl lg:border-2">
+        <FloatingPanelHeader>
+          <FloatingPanelTitle>Comments</FloatingPanelTitle>
+          <FloatingPanelDescription>
+            Moderate user-submitted comments on courses and units.
+          </FloatingPanelDescription>
+        </FloatingPanelHeader>
+        <div className="shrink-0 border-b-2 border-border px-6">
+          <Suspense fallback={<TabsFallback />}>
+            <ModerationTabs active={status} />
+          </Suspense>
+        </div>
+        <FloatingPanelBody>
+          <Suspense key={status} fallback={<ListFallback />}>
+            <ModerationList status={status} />
+          </Suspense>
+        </FloatingPanelBody>
+      </FloatingPanel>
+    </FloatingPanelLayoutFull>
   );
 }
 
 async function ModerationTabs({ active }: { active: TabStatus }) {
   const counts = await getAdminModerationCounts();
   return (
-    <nav className="flex items-center gap-1 border-b">
+    <nav className="flex items-center gap-1">
       {TAB_STATUSES.map((status) => (
         <TabLink
           key={status}
@@ -83,9 +94,9 @@ function TabLink({
     <Link
       href={`/admin/comments?status=${status}`}
       className={cn(
-        "relative -mb-px flex items-center gap-2 border-b-2 px-3 py-2 text-sm font-medium transition-colors",
+        "-mb-0.5 flex h-14 items-center gap-2 border-b-2 px-4 font-heading text-xs font-bold uppercase tracking-wider transition-colors",
         active
-          ? "border-primary text-foreground"
+          ? "border-chart-3 text-chart-3"
           : "border-transparent text-muted-foreground hover:text-foreground",
       )}
     >
@@ -94,7 +105,7 @@ function TabLink({
         className={cn(
           "rounded-full px-1.5 py-0.5 text-xs tabular-nums",
           active
-            ? "bg-primary/10 text-primary"
+            ? "bg-chart-3/10 text-chart-3"
             : "bg-muted text-muted-foreground",
         )}
       >
@@ -104,19 +115,85 @@ function TabLink({
   );
 }
 
+function TabsFallback() {
+  return <Skeleton className="my-4 h-6 w-96" />;
+}
+
+function ListFallback() {
+  return (
+    <>
+      <Skeleton className="h-24 w-full rounded-none" />
+      <Skeleton className="h-24 w-full rounded-none" />
+      <Skeleton className="h-24 w-full rounded-none" />
+    </>
+  );
+}
+
 async function ModerationList({ status }: { status: TabStatus }) {
   const rows =
     status === "deleted"
       ? await listAdminCommentsForModeration({ deleted: true })
       : await listAdminCommentsForModeration({ status, deleted: false });
 
+  if (rows.length === 0) {
+    return (
+      <p className="px-8 py-10 text-base text-muted-foreground">
+        {emptyMessageFor(status)}
+      </p>
+    );
+  }
+
   return (
-    <DataTable
-      columns={columns}
-      data={rows}
-      rowKey={(r) => r.id}
-      empty={emptyMessageFor(status)}
-    />
+    <FloatingPanelTable>
+      <FloatingPanelTableHeader>
+        <tr>
+          <FloatingPanelTableHead>Comment</FloatingPanelTableHead>
+          <FloatingPanelTableHead className="w-40">Author</FloatingPanelTableHead>
+          <FloatingPanelTableHead className="w-64">Email</FloatingPanelTableHead>
+          <FloatingPanelTableHead className="w-56">Target</FloatingPanelTableHead>
+          <FloatingPanelTableHead className="w-36">
+            Submitted
+          </FloatingPanelTableHead>
+          <FloatingPanelTableHead className="w-72 text-right">
+            Actions
+          </FloatingPanelTableHead>
+        </tr>
+      </FloatingPanelTableHeader>
+      <FloatingPanelTableBody>
+        {rows.map((r) => {
+          const authorName =
+            r.author.displayName?.trim() || r.author.email.split("@")[0];
+          return (
+            <FloatingPanelTableRow key={r.id}>
+              <FloatingPanelTableCell className="py-5 align-top whitespace-normal">
+                <CommentCell row={r} />
+              </FloatingPanelTableCell>
+              <FloatingPanelTableCell className="py-5 align-top">
+                <span className="font-heading font-semibold">{authorName}</span>
+              </FloatingPanelTableCell>
+              <FloatingPanelTableCell className="py-5 align-top text-muted-foreground">
+                <span className="block truncate">{r.author.email}</span>
+              </FloatingPanelTableCell>
+              <FloatingPanelTableCell className="py-5 align-top">
+                <TargetCell row={r} />
+              </FloatingPanelTableCell>
+              <FloatingPanelTableCell className="py-5 align-top text-muted-foreground">
+                {formatDistanceToNow(new Date(r.createdAt), {
+                  addSuffix: true,
+                })}
+              </FloatingPanelTableCell>
+              <FloatingPanelTableCell className="py-5 text-right align-top">
+                <CommentModerationRowActions
+                  commentId={r.id}
+                  status={r.moderationStatus}
+                  deletedAt={r.deletedAt}
+                />
+              </FloatingPanelTableCell>
+            </FloatingPanelTableRow>
+          );
+        })}
+      </FloatingPanelTableBody>
+    </FloatingPanelTable>
   );
 }
 
@@ -133,68 +210,16 @@ function emptyMessageFor(status: TabStatus): string {
   }
 }
 
-const columns: Column<AdminModerationRow>[] = [
-  {
-    header: "Comment",
-    cell: (r) => <CommentCell row={r} />,
-  },
-  {
-    header: "Author",
-    cell: (r) => <AuthorCell row={r} />,
-    className: "w-48",
-  },
-  {
-    header: "Target",
-    cell: (r) => <TargetCell row={r} />,
-    className: "w-56",
-  },
-  {
-    header: "Submitted",
-    cell: (r) => (
-      <span className="text-muted-foreground text-xs whitespace-nowrap">
-        {formatDistanceToNow(new Date(r.createdAt), { addSuffix: true })}
-      </span>
-    ),
-    className: "w-32",
-  },
-  {
-    header: "Actions",
-    cell: (r) => (
-      <CommentModerationRowActions
-        commentId={r.id}
-        status={r.moderationStatus}
-        deletedAt={r.deletedAt}
-      />
-    ),
-    className: "w-72 text-right",
-  },
-];
-
 function CommentCell({ row }: { row: AdminModerationRow }) {
   const parentSnippet = row.parent ? snippet(row.parent.body, 80) : null;
   return (
-    <div className="flex min-w-0 flex-col gap-1">
+    <div className="flex min-w-0 flex-col gap-1.5">
       {parentSnippet && (
-        <span className="text-muted-foreground text-xs italic">
+        <span className="text-xs italic text-muted-foreground">
           ↳ reply to “{parentSnippet}”
         </span>
       )}
-      <p className="line-clamp-4 text-sm whitespace-pre-wrap break-words">
-        {row.body}
-      </p>
-    </div>
-  );
-}
-
-function AuthorCell({ row }: { row: AdminModerationRow }) {
-  const name =
-    row.author.displayName?.trim() || row.author.email.split("@")[0];
-  return (
-    <div className="flex min-w-0 flex-col">
-      <span className="truncate text-sm">{name}</span>
-      <span className="text-muted-foreground truncate text-xs">
-        {row.author.email}
-      </span>
+      <p className="line-clamp-4 whitespace-pre-wrap break-words">{row.body}</p>
     </div>
   );
 }
@@ -202,10 +227,10 @@ function AuthorCell({ row }: { row: AdminModerationRow }) {
 function TargetCell({ row }: { row: AdminModerationRow }) {
   const target = resolveTarget(row);
   if (!target) {
-    return <span className="text-muted-foreground text-xs">—</span>;
+    return <span className="text-muted-foreground">—</span>;
   }
   return (
-    <Link href={target.href} className="text-sm hover:underline">
+    <Link href={target.href} className="hover:underline">
       {target.label}
     </Link>
   );

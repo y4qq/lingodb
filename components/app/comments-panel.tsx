@@ -9,8 +9,13 @@ import {
 import type { CommentWithThread } from "@/lib/domains/comments/queries/public";
 import { CommentItem } from "@/components/app/comment-item";
 import { CommentReplyForm } from "@/components/app/comment-reply-form";
-import { FloatingPanel } from "@/components/app/floating-panel";
 import { Button } from "@/components/ui/button";
+import {
+  FloatingPanel,
+  FloatingPanelFooter,
+  FloatingPanelHeader,
+  FloatingPanelTitle,
+} from "@/components/ui/floating-panel";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Sheet,
@@ -81,14 +86,16 @@ export function CommentsSidebar({
   className,
 }: CommentsPanelProps & { className?: string }) {
   return (
-    <FloatingPanel className={className}>
-      <div className="border-b-2 px-6 py-5">
-        <h2 className="font-heading text-xl font-bold tracking-tight">
-          Comments
-        </h2>
-      </div>
+    <FloatingPanel className={cn("shadow-lg", className)}>
+      <FloatingPanelHeader>
+        <FloatingPanelTitle asChild>
+          <h2>Comments</h2>
+        </FloatingPanelTitle>
+      </FloatingPanelHeader>
       <CommentsList comments={initialComments} currentUserId={currentUserId} />
-      <CommentForm target={target} />
+      <FloatingPanelFooter>
+        <CommentForm target={target} />
+      </FloatingPanelFooter>
     </FloatingPanel>
   );
 }
@@ -170,7 +177,7 @@ function CommentForm({ target }: { target: CommentsPanelProps["target"] }) {
     <form
       ref={formRef}
       action={formAction}
-      className="border-t-2 px-6 py-5 flex flex-col gap-3"
+      className="flex flex-col gap-3 px-6 py-5"
     >
       {target.kind === "course" ? (
         <input type="hidden" name="courseId" value={target.courseId} />

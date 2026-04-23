@@ -1,47 +1,28 @@
 import { Suspense } from "react";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getAdminUnitBySlugs } from "@/lib/domains/courses/queries/admin";
-import { PageHeader } from "@/components/common/page-header";
-import { PageHeaderSkeleton } from "@/components/common/page-header-skeleton";
-import { DataTable, type Column } from "@/components/common/data-table";
 import { LessonCreateDialog } from "@/components/admin/lesson-create-dialog";
 import { UnitEditDialog } from "@/components/admin/unit-edit-dialog";
 import { Badge } from "@/components/ui/badge";
+import {
+  FloatingPanel,
+  FloatingPanelBody,
+  FloatingPanelDescription,
+  FloatingPanelHeader,
+  FloatingPanelHeaderAction,
+  FloatingPanelLayoutFull,
+  FloatingPanelTable,
+  FloatingPanelTableBody,
+  FloatingPanelTableCell,
+  FloatingPanelTableHead,
+  FloatingPanelTableHeader,
+  FloatingPanelTableRow,
+  FloatingPanelTitle,
+} from "@/components/ui/floating-panel";
 import { Skeleton } from "@/components/ui/skeleton";
 
 type Props = { params: Promise<{ slug: string; unitSlug: string }> };
-
-type UnitResult = NonNullable<Awaited<ReturnType<typeof getAdminUnitBySlugs>>>;
-type LessonRow = UnitResult["unit"]["lessons"][number];
-
-const lessonColumns: Column<LessonRow>[] = [
-  {
-    header: "#",
-    cell: (l) => (
-      <span className="text-muted-foreground tabular-nums">{l.position}</span>
-    ),
-    className: "w-12",
-  },
-  {
-    header: "Title",
-    cell: (l) => <span className="font-medium">{l.title}</span>,
-  },
-  {
-    header: "Slug",
-    cell: (l) => (
-      <span className="text-muted-foreground font-mono text-xs">{l.slug}</span>
-    ),
-  },
-  {
-    header: "Status",
-    cell: (l) => (
-      <Badge variant={l.isPublished ? "default" : "secondary"}>
-        {l.isPublished ? "Published" : "Draft"}
-      </Badge>
-    ),
-    className: "w-28",
-  },
-];
 
 export default function AdminUnitPage({ params }: Props) {
   return (
@@ -59,61 +40,111 @@ async function Content({ params }: Props) {
   const { course, unit } = result;
 
   return (
-    <>
-      <PageHeader
-        breadcrumbs={[
-          { href: "/admin", label: "Dashboard" },
-          { href: "/admin/courses", label: "Courses" },
-          { href: `/admin/courses/${course.slug}`, label: course.title },
-          { label: unit.title },
-        ]}
-        title={unit.title}
-        meta={
-          <Badge variant={unit.isPublished ? "default" : "secondary"}>
-            {unit.isPublished ? "Published" : "Draft"}
-          </Badge>
-        }
-        description={
-          unit.description ?? `Unit ${unit.position} · ${unit.slug}`
-        }
-        action={
-          <div className="flex items-center gap-2">
-            <LessonCreateDialog unitId={unit.id} />
-            <UnitEditDialog
-              unit={{
-                id: unit.id,
-                title: unit.title,
-                description: unit.description,
-                position: unit.position,
-                isPublished: unit.isPublished,
-                isFree: unit.isFree,
-              }}
-            />
-          </div>
-        }
-      />
-
-      <section className="flex flex-col gap-4">
-        <h2 className="text-lg font-medium">Lessons</h2>
-        <DataTable
-          columns={lessonColumns}
-          data={unit.lessons}
-          rowKey={(l) => l.id}
-          rowHref={(l) =>
-            `/admin/courses/${course.slug}/${unit.slug}/${l.slug}`
-          }
-          empty="No lessons yet."
-        />
-      </section>
-    </>
+    <FloatingPanelLayoutFull>
+      <FloatingPanel className="flex-1 rounded-none border-0 shadow-lg lg:rounded-xl lg:border-2">
+        <FloatingPanelHeader>
+          <FloatingPanelTitle className="flex items-center gap-3">
+            <span>{unit.title}</span>
+            <Badge variant={unit.isPublished ? "default" : "secondary"}>
+              {unit.isPublished ? "Published" : "Draft"}
+            </Badge>
+          </FloatingPanelTitle>
+          <FloatingPanelDescription>
+            {unit.description ?? `Unit ${unit.position} · ${unit.slug}`}
+          </FloatingPanelDescription>
+          <FloatingPanelHeaderAction>
+            <div className="flex items-center gap-2">
+              <LessonCreateDialog unitId={unit.id} />
+              <UnitEditDialog
+                unit={{
+                  id: unit.id,
+                  title: unit.title,
+                  description: unit.description,
+                  position: unit.position,
+                  isPublished: unit.isPublished,
+                  isFree: unit.isFree,
+                }}
+              />
+            </div>
+          </FloatingPanelHeaderAction>
+        </FloatingPanelHeader>
+        <FloatingPanelBody>
+          {unit.lessons.length === 0 ? (
+            <p className="px-8 py-10 text-base text-muted-foreground">
+              No lessons yet.
+            </p>
+          ) : (
+            <FloatingPanelTable>
+              <FloatingPanelTableHeader>
+                <tr>
+                  <FloatingPanelTableHead className="w-16">
+                    #
+                  </FloatingPanelTableHead>
+                  <FloatingPanelTableHead>Title</FloatingPanelTableHead>
+                  <FloatingPanelTableHead>Slug</FloatingPanelTableHead>
+                  <FloatingPanelTableHead className="w-32">
+                    Status
+                  </FloatingPanelTableHead>
+                </tr>
+              </FloatingPanelTableHeader>
+              <FloatingPanelTableBody>
+                {unit.lessons.map((l) => (
+                  <FloatingPanelTableRow
+                    key={l.id}
+                    className="relative cursor-pointer"
+                  >
+                    <FloatingPanelTableCell className="tabular-nums text-muted-foreground">
+                      {l.position}
+                    </FloatingPanelTableCell>
+                    <FloatingPanelTableCell>
+                      <Link
+                        href={`/admin/courses/${course.slug}/${unit.slug}/${l.slug}`}
+                        tabIndex={-1}
+                        aria-hidden
+                        className="absolute inset-0"
+                      />
+                      <span className="font-heading font-semibold">
+                        {l.title}
+                      </span>
+                    </FloatingPanelTableCell>
+                    <FloatingPanelTableCell>
+                      <span className="font-mono text-sm text-muted-foreground">
+                        {l.slug}
+                      </span>
+                    </FloatingPanelTableCell>
+                    <FloatingPanelTableCell>
+                      <Badge variant={l.isPublished ? "default" : "secondary"}>
+                        {l.isPublished ? "Published" : "Draft"}
+                      </Badge>
+                    </FloatingPanelTableCell>
+                  </FloatingPanelTableRow>
+                ))}
+              </FloatingPanelTableBody>
+            </FloatingPanelTable>
+          )}
+        </FloatingPanelBody>
+      </FloatingPanel>
+    </FloatingPanelLayoutFull>
   );
 }
 
 function Fallback() {
   return (
-    <>
-      <PageHeaderSkeleton />
-      <Skeleton className="h-64 w-full" />
-    </>
+    <FloatingPanelLayoutFull>
+      <FloatingPanel className="flex-1 rounded-none border-0 shadow-lg lg:rounded-xl lg:border-2">
+        <FloatingPanelHeader>
+          <Skeleton className="h-6 w-56" />
+          <Skeleton className="h-4 w-72" />
+          <FloatingPanelHeaderAction>
+            <Skeleton className="h-9 w-44" />
+          </FloatingPanelHeaderAction>
+        </FloatingPanelHeader>
+        <FloatingPanelBody>
+          <Skeleton className="h-24 w-full rounded-none" />
+          <Skeleton className="h-24 w-full rounded-none" />
+          <Skeleton className="h-24 w-full rounded-none" />
+        </FloatingPanelBody>
+      </FloatingPanel>
+    </FloatingPanelLayoutFull>
   );
 }

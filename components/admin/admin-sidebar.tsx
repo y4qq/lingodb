@@ -9,19 +9,18 @@ import {
   LayoutDashboard,
   MessageSquare,
 } from "lucide-react";
+import { UserMenu } from "@/components/auth/user-menu";
 import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
-  SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import { UserMenu } from "@/components/auth/user-menu";
 
 type NavItem = {
   label: string;
@@ -56,33 +55,34 @@ type Props = {
   userName: string | null;
 };
 
+const navButtonClass =
+  "rounded-none border-b-2 border-border px-6 h-14 data-active:ring-0";
+
 export function AdminSidebar({ userEmail, userName }: Props) {
   const pathname = usePathname();
 
   return (
-    <Sidebar>
-      <SidebarHeader>
-        <div className="flex items-center">
-          <span className="px-2 text-sm font-semibold tracking-tight">
-            Admin
-          </span>
-        </div>
+    <Sidebar variant="floating">
+      <SidebarHeader className="h-[70px] flex-row items-center border-b-2 border-border py-0 gap-0">
+        <span className="font-heading text-2xl font-extrabold tracking-tight text-chart-3">
+          Admin
+        </span>
       </SidebarHeader>
       <SidebarContent>
-        <SidebarGroup>
-          <SidebarGroupLabel>Platform</SidebarGroupLabel>
+        <SidebarGroup className="p-0">
           <SidebarGroupContent>
-            <SidebarMenu>
+            <SidebarMenu className="gap-0">
               {navItems.map((item) => (
                 <SidebarMenuItem key={item.href}>
                   <SidebarMenuButton
                     asChild
                     isActive={item.matches(pathname)}
                     tooltip={item.label}
+                    className={navButtonClass}
                   >
                     <Link href={item.href}>
                       {item.icon}
-                      <span>{item.label}</span>
+                      <span className="uppercase">{item.label}</span>
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -91,13 +91,17 @@ export function AdminSidebar({ userEmail, userName }: Props) {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
-      <SidebarFooter>
-        <SidebarMenu>
+      <SidebarFooter className="border-t-2 border-border p-0 gap-0">
+        <SidebarMenu className="gap-0">
           <SidebarMenuItem>
-            <SidebarMenuButton asChild tooltip="Exit admin">
+            <SidebarMenuButton
+              asChild
+              tooltip="Exit admin"
+              className={navButtonClass}
+            >
               <Link href="/courses">
                 <ArrowLeftFromLine />
-                <span>Exit admin</span>
+                <span className="uppercase">Exit admin</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>

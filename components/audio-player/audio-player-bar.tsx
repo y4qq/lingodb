@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Pause, Play, RotateCcw, RotateCw, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { FloatingPanelFooter } from "@/components/ui/floating-panel";
 import { Slider } from "@/components/ui/slider";
 import { useAudioPlayer } from "./audio-player-provider";
 
@@ -26,7 +27,7 @@ export function AudioPlayerBar() {
   const remaining = Math.max(0, max - displayTime);
 
   return (
-    <div className="bg-background sticky bottom-0 z-40 -mx-6 border-t">
+    <FloatingPanelFooter>
       <div className="relative mx-auto flex max-w-xl flex-col gap-3 px-6 py-4">
         <Button
           variant="ghost"
@@ -103,7 +104,7 @@ export function AudioPlayerBar() {
           </Button>
         </div>
       </div>
-    </div>
+    </FloatingPanelFooter>
   );
 }
 

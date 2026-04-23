@@ -2,9 +2,16 @@
 
 import { useAudioPlayer } from "@/components/audio-player";
 import { useAudioSelection } from "@/components/admin/audio-selection-provider";
-import { DataTable, type Column } from "@/components/common/data-table";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+  FloatingPanelTable,
+  FloatingPanelTableBody,
+  FloatingPanelTableCell,
+  FloatingPanelTableHead,
+  FloatingPanelTableHeader,
+  FloatingPanelTableRow,
+} from "@/components/ui/floating-panel";
 
 export type AudioVersion = {
   id: string;
@@ -25,71 +32,78 @@ export function AudioVersionsTable({
   const { play, track } = useAudioPlayer();
   const { selectedId, setSelectedId } = useAudioSelection();
 
-  const columns: Column<AudioVersion>[] = [
-    {
-      header: "",
-      className: "w-10",
-      cell: (v) => (
-        <Checkbox
-          checked={selectedId === v.id}
-          onCheckedChange={(checked) =>
-            setSelectedId(checked ? v.id : null)
-          }
-          onClick={(e) => e.stopPropagation()}
-          aria-label={`Select ${v.label}`}
-        />
-      ),
-    },
-    {
-      header: "Label",
-      cell: (v) => <span className="font-medium">{v.label}</span>,
-    },
-    {
-      header: "Duration",
-      cell: (v) => (
-        <span className="text-muted-foreground font-mono text-xs tabular-nums">
-          {formatDuration(v.audioDurationSeconds)}
-        </span>
-      ),
-    },
-    {
-      header: "Added",
-      cell: (v) => (
-        <span className="text-muted-foreground">{formatDate(v.createdAt)}</span>
-      ),
-    },
-    {
-      header: "Status",
-      className: "w-44",
-      cell: (v) => (
-        <div className="flex items-center gap-1.5">
-          {v.isCurrent && <Badge>Current</Badge>}
-          {v.disabledAt !== null && <Badge variant="secondary">Disabled</Badge>}
-          {track?.id === v.id && (
-            <Badge variant="outline">Playing</Badge>
-          )}
-        </div>
-      ),
-    },
-  ];
+  if (versions.length === 0) {
+    return (
+      <p className="px-8 py-10 text-base text-muted-foreground">
+        No audio versions yet. Upload one to get started.
+      </p>
+    );
+  }
 
   return (
-    <DataTable
-      columns={columns}
-      data={versions}
-      rowKey={(v) => v.id}
-      rowIsSelected={(v) => selectedId === v.id}
-      onRowClick={(v) => {
-        if (!v.signedUrl) return;
-        play({
-          id: v.id,
-          label: v.label,
-          src: v.signedUrl,
-          durationSeconds: v.audioDurationSeconds,
-        });
-      }}
-      empty="No audio versions yet. Upload one to get started."
-    />
+    <FloatingPanelTable>
+      <FloatingPanelTableHeader>
+        <tr>
+          <FloatingPanelTableHead className="w-16" />
+          <FloatingPanelTableHead>Label</FloatingPanelTableHead>
+          <FloatingPanelTableHead>Duration</FloatingPanelTableHead>
+          <FloatingPanelTableHead>Added</FloatingPanelTableHead>
+          <FloatingPanelTableHead className="w-48">Status</FloatingPanelTableHead>
+        </tr>
+      </FloatingPanelTableHeader>
+      <FloatingPanelTableBody>
+        {versions.map((v) => {
+          const isSelected = selectedId === v.id;
+          return (
+            <FloatingPanelTableRow
+              key={v.id}
+              data-state={isSelected ? "selected" : undefined}
+              className="cursor-pointer"
+              onClick={() => {
+                if (!v.signedUrl) return;
+                play({
+                  id: v.id,
+                  label: v.label,
+                  src: v.signedUrl,
+                  durationSeconds: v.audioDurationSeconds,
+                });
+              }}
+            >
+              <FloatingPanelTableCell>
+                <Checkbox
+                  checked={isSelected}
+                  onCheckedChange={(checked) =>
+                    setSelectedId(checked ? v.id : null)
+                  }
+                  onClick={(e) => e.stopPropagation()}
+                  aria-label={`Select ${v.label}`}
+                />
+              </FloatingPanelTableCell>
+              <FloatingPanelTableCell>
+                <span className="font-heading font-semibold">{v.label}</span>
+              </FloatingPanelTableCell>
+              <FloatingPanelTableCell className="font-mono tabular-nums text-muted-foreground">
+                {formatDuration(v.audioDurationSeconds)}
+              </FloatingPanelTableCell>
+              <FloatingPanelTableCell className="text-muted-foreground">
+                {formatDate(v.createdAt)}
+              </FloatingPanelTableCell>
+              <FloatingPanelTableCell>
+                <div className="flex items-center gap-1.5">
+                  {v.isCurrent && <Badge>Current</Badge>}
+                  {v.disabledAt !== null && (
+                    <Badge variant="secondary">Disabled</Badge>
+                  )}
+                  {track?.id === v.id && (
+                    <Badge variant="outline">Playing</Badge>
+                  )}
+                </div>
+              </FloatingPanelTableCell>
+            </FloatingPanelTableRow>
+          );
+        })}
+      </FloatingPanelTableBody>
+    </FloatingPanelTable>
   );
 }
 
