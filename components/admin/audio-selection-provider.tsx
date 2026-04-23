@@ -3,7 +3,6 @@
 import {
   createContext,
   useContext,
-  useMemo,
   useState,
   type ReactNode,
 } from "react";
@@ -17,9 +16,10 @@ const AudioSelectionContext = createContext<AudioSelectionApi | null>(null);
 
 export function AudioSelectionProvider({ children }: { children: ReactNode }) {
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const api = useMemo(() => ({ selectedId, setSelectedId }), [selectedId]);
   return (
-    <AudioSelectionContext value={api}>{children}</AudioSelectionContext>
+    <AudioSelectionContext value={{ selectedId, setSelectedId }}>
+      {children}
+    </AudioSelectionContext>
   );
 }
 

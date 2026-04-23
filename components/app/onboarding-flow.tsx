@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useState, useTransition } from "react";
+import { useActionState, useState } from "react";
 import { LogOut } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -26,7 +26,6 @@ export function OnboardingFlow({ initialDisplayName }: Props) {
     completeOnboarding,
     undefined,
   );
-  const [, startTransition] = useTransition();
 
   const trimmedName = name.trim();
   const canContinue = trimmedName.length > 0 && !pending;
@@ -38,7 +37,7 @@ export function OnboardingFlow({ initialDisplayName }: Props) {
   function handleContinue() {
     const fd = new FormData();
     fd.append("name", trimmedName);
-    startTransition(() => action(fd));
+    action(fd);
   }
 
   return (

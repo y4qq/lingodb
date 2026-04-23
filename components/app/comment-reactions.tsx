@@ -118,7 +118,7 @@ function ReactionButton({
       type="button"
       variant="ghost"
       size="xs"
-      aria-label={label}
+      aria-label={`${label} (${count})`}
       aria-pressed={active}
       disabled={disabled}
       onClick={onClick}
