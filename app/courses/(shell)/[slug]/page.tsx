@@ -38,7 +38,7 @@ async function Content({ params }: Props) {
   return (
     <>
       <FloatingPanelLayout>
-        <FloatingPanel className="flex-1 rounded-none border-0 shadow-lg lg:rounded-xl lg:border-2">
+        <FloatingPanel className="flex-1">
           <FloatingPanelHeader>
             <FloatingPanelTitle>{course.title}</FloatingPanelTitle>
           </FloatingPanelHeader>
@@ -98,7 +98,7 @@ async function Content({ params }: Props) {
 function Fallback() {
   return (
     <FloatingPanelLayout>
-      <FloatingPanel className="flex-1 rounded-none border-0 shadow-lg lg:rounded-xl lg:border-2">
+      <FloatingPanel className="flex-1">
         <FloatingPanelHeader>
           <Skeleton className="h-6 w-48" />
         </FloatingPanelHeader>

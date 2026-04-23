@@ -2,13 +2,13 @@ import { Suspense } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getAdminUnitBySlugs } from "@/lib/domains/courses/queries/admin";
+import { AdminPageHeader } from "@/components/admin/admin-page-header";
 import { LessonCreateDialog } from "@/components/admin/lesson-create-dialog";
 import { UnitEditDialog } from "@/components/admin/unit-edit-dialog";
 import { Badge } from "@/components/ui/badge";
 import {
   FloatingPanel,
   FloatingPanelBody,
-  FloatingPanelDescription,
   FloatingPanelHeader,
   FloatingPanelHeaderAction,
   FloatingPanelLayoutFull,
@@ -41,31 +41,37 @@ async function Content({ params }: Props) {
 
   return (
     <FloatingPanelLayoutFull>
-      <FloatingPanel className="flex-1 rounded-none border-0 shadow-lg lg:rounded-xl lg:border-2">
-        <FloatingPanelHeader>
-          <FloatingPanelTitle className="flex items-center gap-3">
-            <span>{unit.title}</span>
+      <AdminPageHeader
+        breadcrumbs={[
+          { href: "/admin/courses", label: "Courses" },
+          { href: `/admin/courses/${course.slug}`, label: course.title },
+        ]}
+        title={
+          <>
+            <span className="truncate">{unit.title}</span>
             <Badge variant={unit.isPublished ? "default" : "secondary"}>
               {unit.isPublished ? "Published" : "Draft"}
             </Badge>
-          </FloatingPanelTitle>
-          <FloatingPanelDescription>
-            {unit.description ?? `Unit ${unit.position} · ${unit.slug}`}
-          </FloatingPanelDescription>
+          </>
+        }
+        action={
+          <UnitEditDialog
+            unit={{
+              id: unit.id,
+              title: unit.title,
+              description: unit.description,
+              position: unit.position,
+              isPublished: unit.isPublished,
+              isFree: unit.isFree,
+            }}
+          />
+        }
+      />
+      <FloatingPanel className="flex-1">
+        <FloatingPanelHeader>
+          <FloatingPanelTitle>Lessons</FloatingPanelTitle>
           <FloatingPanelHeaderAction>
-            <div className="flex items-center gap-2">
-              <LessonCreateDialog unitId={unit.id} />
-              <UnitEditDialog
-                unit={{
-                  id: unit.id,
-                  title: unit.title,
-                  description: unit.description,
-                  position: unit.position,
-                  isPublished: unit.isPublished,
-                  isFree: unit.isFree,
-                }}
-              />
-            </div>
+            <LessonCreateDialog unitId={unit.id} />
           </FloatingPanelHeaderAction>
         </FloatingPanelHeader>
         <FloatingPanelBody>
@@ -131,12 +137,16 @@ async function Content({ params }: Props) {
 function Fallback() {
   return (
     <FloatingPanelLayoutFull>
-      <FloatingPanel className="flex-1 rounded-none border-0 shadow-lg lg:rounded-xl lg:border-2">
+      <AdminPageHeader
+        breadcrumbs={[{ href: "/admin/courses", label: "Courses" }]}
+        title={<Skeleton className="h-6 w-56" />}
+        action={<Skeleton className="h-9 w-24" />}
+      />
+      <FloatingPanel className="flex-1">
         <FloatingPanelHeader>
-          <Skeleton className="h-6 w-56" />
-          <Skeleton className="h-4 w-72" />
+          <FloatingPanelTitle>Lessons</FloatingPanelTitle>
           <FloatingPanelHeaderAction>
-            <Skeleton className="h-9 w-44" />
+            <Skeleton className="h-9 w-32" />
           </FloatingPanelHeaderAction>
         </FloatingPanelHeader>
         <FloatingPanelBody>

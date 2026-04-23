@@ -338,6 +338,7 @@ export type ModerationFilter = {
   // and ignores status; the other tabs pass a specific status + deleted=false.
   status?: "pending" | "approved" | "rejected";
   deleted?: boolean;
+  limit?: number;
 };
 
 // Single flat list of comments for the admin moderation surface. Top-level
@@ -354,6 +355,7 @@ export async function listCommentsForModeration(filter: ModerationFilter) {
           ? isNull(comments.deletedAt)
           : undefined,
     ),
+    limit: filter.limit,
     orderBy: desc(comments.createdAt),
     with: {
       author: { columns: { id: true, displayName: true, email: true } },

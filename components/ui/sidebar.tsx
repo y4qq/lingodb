@@ -241,7 +241,7 @@ function Sidebar({
         <div
           data-sidebar="sidebar"
           data-slot="sidebar-inner"
-          className="flex size-full  flex-col bg-background group-data-[variant=floating]:rounded-xl group-data-[variant=floating]:shadow-lg group-data-[variant=floating]:border-2 group-data-[variant=floating]:ring-sidebar-border"
+          className="flex size-full  flex-col bg-background group-data-[variant=floating]:rounded-lg group-data-[variant=floating]:shadow-lg group-data-[variant=floating]:border-2 group-data-[variant=floating]:ring-sidebar-border"
         >
           {children}
         </div>

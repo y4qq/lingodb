@@ -40,7 +40,7 @@ function FloatingPanelLayoutFull({
     <div
       data-slot="floating-panel-layout-full"
       className={cn(
-        "relative z-20 flex min-h-0 flex-1 flex-col lg:-ml-6",
+        "relative z-20 flex min-h-0 flex-1 flex-col gap-6 lg:-ml-6",
         className,
       )}
       {...props}
@@ -53,7 +53,8 @@ function FloatingPanel({ className, ...props }: React.ComponentProps<"div">) {
     <div
       data-slot="floating-panel"
       className={cn(
-        "flex h-full min-h-0 flex-col overflow-hidden rounded-xl border-2 border-border bg-background",
+        "flex min-h-0 flex-col overflow-hidden bg-background shadow-lg",
+        "rounded-none border-0 lg:rounded-xl lg:border-2 lg:border-border",
         className,
       )}
       {...props}

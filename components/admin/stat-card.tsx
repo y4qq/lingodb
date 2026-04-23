@@ -1,36 +1,23 @@
-import type { ReactNode } from "react";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
 
 type StatCardProps = {
   label: string;
   value: number | string;
-  hint?: string;
-  icon?: ReactNode;
+  className?: string;
 };
 
-export function StatCard({ label, value, hint, icon }: StatCardProps) {
+export function StatCard({ label, value, className }: StatCardProps) {
   return (
-    <Card size="sm">
-      <CardHeader>
-        <CardDescription className="flex items-center gap-2">
-          {icon && <span className="[&>svg]:size-4">{icon}</span>}
+    <Card size="sm" className={cn("rounded-lg shadow-lg", className)}>
+      <div className="flex items-baseline justify-between gap-3 px-4">
+        <span className="font-heading text-xl font-medium tracking-tight text-muted-foreground">
           {label}
-        </CardDescription>
-        <CardTitle className="text-2xl font-semibold tracking-tight">
+        </span>
+        <span className="font-heading text-xl font-bold tracking-tight tabular-nums">
           {value}
-        </CardTitle>
-      </CardHeader>
-      {hint && (
-        <CardContent className="text-muted-foreground text-xs">
-          {hint}
-        </CardContent>
-      )}
+        </span>
+      </div>
     </Card>
   );
 }

@@ -1,12 +1,12 @@
 import { Suspense } from "react";
 import Link from "next/link";
 import { listAdminCoursesWithEnrollments } from "@/lib/domains/courses/queries/admin";
+import { AdminPageHeader } from "@/components/admin/admin-page-header";
 import { CourseCreateButton } from "@/components/admin/course-create-button";
 import { Badge } from "@/components/ui/badge";
 import {
   FloatingPanel,
   FloatingPanelBody,
-  FloatingPanelDescription,
   FloatingPanelHeader,
   FloatingPanelHeaderAction,
   FloatingPanelLayoutFull,
@@ -23,12 +23,10 @@ import { Skeleton } from "@/components/ui/skeleton";
 export default function AdminCoursesPage() {
   return (
     <FloatingPanelLayoutFull>
-      <FloatingPanel className="flex-1 rounded-none border-0 shadow-lg lg:rounded-xl lg:border-2">
+      <AdminPageHeader title="Courses" />
+      <FloatingPanel className="flex-1">
         <FloatingPanelHeader>
-          <FloatingPanelTitle>Courses</FloatingPanelTitle>
-          <FloatingPanelDescription>
-            All courses, published and draft.
-          </FloatingPanelDescription>
+          <FloatingPanelTitle>All courses</FloatingPanelTitle>
           <FloatingPanelHeaderAction>
             <Suspense fallback={<Skeleton className="h-9 w-36" />}>
               <CourseCreateButton />

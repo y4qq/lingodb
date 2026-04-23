@@ -1,19 +1,21 @@
+import { AdminPageHeader } from "@/components/admin/admin-page-header";
 import {
   FloatingPanel,
   FloatingPanelBody,
   FloatingPanelHeader,
   FloatingPanelHeaderAction,
   FloatingPanelLayoutFull,
+  FloatingPanelTitle,
 } from "@/components/ui/floating-panel";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export default function Loading() {
   return (
     <FloatingPanelLayoutFull>
-      <FloatingPanel className="flex-1 rounded-none border-0 shadow-lg lg:rounded-xl lg:border-2">
+      <AdminPageHeader title="Courses" />
+      <FloatingPanel className="flex-1">
         <FloatingPanelHeader>
-          <Skeleton className="h-6 w-40" />
-          <Skeleton className="h-4 w-64" />
+          <FloatingPanelTitle>All courses</FloatingPanelTitle>
           <FloatingPanelHeaderAction>
             <Skeleton className="h-9 w-36" />
           </FloatingPanelHeaderAction>

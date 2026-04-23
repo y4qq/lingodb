@@ -6,11 +6,11 @@ import {
   listAdminCommentsForModeration,
   type AdminModerationRow,
 } from "@/lib/domains/comments/queries/admin";
+import { AdminPageHeader } from "@/components/admin/admin-page-header";
 import { CommentModerationRowActions } from "@/components/admin/comment-moderation-row-actions";
 import {
   FloatingPanel,
   FloatingPanelBody,
-  FloatingPanelDescription,
   FloatingPanelHeader,
   FloatingPanelLayoutFull,
   FloatingPanelTable,
@@ -42,12 +42,10 @@ export default async function AdminCommentsPage({ searchParams }: Props) {
 
   return (
     <FloatingPanelLayoutFull>
-      <FloatingPanel className="flex-1 rounded-none border-0 shadow-lg lg:rounded-xl lg:border-2">
+      <AdminPageHeader title="Comments" />
+      <FloatingPanel className="flex-1">
         <FloatingPanelHeader>
-          <FloatingPanelTitle>Comments</FloatingPanelTitle>
-          <FloatingPanelDescription>
-            Moderate user-submitted comments on courses and units.
-          </FloatingPanelDescription>
+          <FloatingPanelTitle>Moderation queue</FloatingPanelTitle>
         </FloatingPanelHeader>
         <div className="shrink-0 border-b-2 border-border px-6">
           <Suspense fallback={<TabsFallback />}>

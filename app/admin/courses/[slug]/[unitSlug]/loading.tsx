@@ -1,21 +1,27 @@
+import { AdminPageHeader } from "@/components/admin/admin-page-header";
 import {
   FloatingPanel,
   FloatingPanelBody,
   FloatingPanelHeader,
   FloatingPanelHeaderAction,
   FloatingPanelLayoutFull,
+  FloatingPanelTitle,
 } from "@/components/ui/floating-panel";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export default function Loading() {
   return (
     <FloatingPanelLayoutFull>
-      <FloatingPanel className="flex-1 rounded-none border-0 shadow-lg lg:rounded-xl lg:border-2">
+      <AdminPageHeader
+        breadcrumbs={[{ href: "/admin/courses", label: "Courses" }]}
+        title={<Skeleton className="h-6 w-56" />}
+        action={<Skeleton className="h-9 w-24" />}
+      />
+      <FloatingPanel className="flex-1">
         <FloatingPanelHeader>
-          <Skeleton className="h-6 w-56" />
-          <Skeleton className="h-4 w-72" />
+          <FloatingPanelTitle>Lessons</FloatingPanelTitle>
           <FloatingPanelHeaderAction>
-            <Skeleton className="h-9 w-44" />
+            <Skeleton className="h-9 w-32" />
           </FloatingPanelHeaderAction>
         </FloatingPanelHeader>
         <FloatingPanelBody>

@@ -15,7 +15,7 @@ export default async function EnrollPage() {
 
   return (
     <FloatingPanelLayout>
-      <FloatingPanel className="flex-1 rounded-none border-0 shadow-lg lg:rounded-xl lg:border-2">
+      <FloatingPanel className="flex-1">
         <FloatingPanelHeader>
           <FloatingPanelTitle>Enroll in a course</FloatingPanelTitle>
           <FloatingPanelDescription>

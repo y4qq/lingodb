@@ -86,7 +86,7 @@ export function CommentsSidebar({
   className,
 }: CommentsPanelProps & { className?: string }) {
   return (
-    <FloatingPanel className={cn("shadow-lg", className)}>
+    <FloatingPanel className={className}>
       <FloatingPanelHeader>
         <FloatingPanelTitle asChild>
           <h2>Comments</h2>

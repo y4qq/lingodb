@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { getAdminLessonBySlugs } from "@/lib/domains/courses/queries/admin";
+import { AdminPageHeader } from "@/components/admin/admin-page-header";
 import { AudioSelectionProvider } from "@/components/admin/audio-selection-provider";
 import { AudioVersionsHeaderActions } from "@/components/admin/audio-versions-header-actions";
 import { AudioVersionsTable } from "@/components/admin/audio-versions-table";
@@ -12,7 +13,6 @@ import { Badge } from "@/components/ui/badge";
 import {
   FloatingPanel,
   FloatingPanelBody,
-  FloatingPanelDescription,
   FloatingPanelHeader,
   FloatingPanelHeaderAction,
   FloatingPanelLayoutFull,
@@ -37,24 +37,33 @@ async function Content({ params }: Props) {
   const result = await getAdminLessonBySlugs(slug, unitSlug, lessonSlug);
   if (!result) notFound();
 
-  const { lesson } = result;
+  const { course, unit, lesson } = result;
 
   return (
     <AudioPlayerProvider>
       <AudioSelectionProvider>
         <FloatingPanelLayoutFull>
-          <FloatingPanel className="flex-1 rounded-none border-0 shadow-lg lg:rounded-xl lg:border-2">
-            <FloatingPanelHeader>
-              <FloatingPanelTitle className="flex items-center gap-3">
-                <span>{lesson.title}</span>
+          <AdminPageHeader
+            breadcrumbs={[
+              { href: "/admin/courses", label: "Courses" },
+              { href: `/admin/courses/${course.slug}`, label: course.title },
+              {
+                href: `/admin/courses/${course.slug}/${unit.slug}`,
+                label: unit.title,
+              },
+            ]}
+            title={
+              <>
+                <span className="truncate">{lesson.title}</span>
                 <Badge variant={lesson.isPublished ? "default" : "secondary"}>
                   {lesson.isPublished ? "Published" : "Draft"}
                 </Badge>
-              </FloatingPanelTitle>
-              <FloatingPanelDescription>
-                {lesson.description ??
-                  `Lesson ${lesson.position} · ${lesson.slug}`}
-              </FloatingPanelDescription>
+              </>
+            }
+          />
+          <FloatingPanel className="flex-1">
+            <FloatingPanelHeader>
+              <FloatingPanelTitle>Audio versions</FloatingPanelTitle>
               <FloatingPanelHeaderAction>
                 <AudioVersionsHeaderActions
                   lessonId={lesson.id}
@@ -76,10 +85,13 @@ async function Content({ params }: Props) {
 function Fallback() {
   return (
     <FloatingPanelLayoutFull>
-      <FloatingPanel className="flex-1 rounded-none border-0 shadow-lg lg:rounded-xl lg:border-2">
+      <AdminPageHeader
+        breadcrumbs={[{ href: "/admin/courses", label: "Courses" }]}
+        title={<Skeleton className="h-6 w-56" />}
+      />
+      <FloatingPanel className="flex-1">
         <FloatingPanelHeader>
-          <Skeleton className="h-6 w-56" />
-          <Skeleton className="h-4 w-72" />
+          <FloatingPanelTitle>Audio versions</FloatingPanelTitle>
           <FloatingPanelHeaderAction>
             <Skeleton className="h-9 w-44" />
           </FloatingPanelHeaderAction>
