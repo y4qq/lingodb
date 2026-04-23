@@ -16,10 +16,11 @@ A language-learning platform with audio lessons, moderated community comments, a
 
 ## Screenshots
 
-<!-- TODO: capture these three PNGs before flipping repo to public -->
-| Course catalog | Lesson player | Admin moderation |
-|----------------|---------------|------------------|
-| ![Course catalog](./docs/screenshot-catalog.png) | ![Lesson player](./docs/screenshot-lesson.png) | ![Admin moderation](./docs/screenshot-admin.png) |
+| Course & lessons | Audio player |
+|---|---|
+| ![Course with units and lessons](./docs/course-lessons.png) | ![Lesson audio player](./docs/audio-player.png) |
+| **Admin dashboard** | **Admin audio upload** |
+| ![Admin dashboard](./docs/admin.png) | ![Admin audio upload](./docs/audio-upload.png) |
 
 ## Tech stack
 
