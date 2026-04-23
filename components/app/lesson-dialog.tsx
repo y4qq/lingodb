@@ -1,0 +1,529 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import {
+  Check,
+  CheckCircle2,
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  X,
+} from "lucide-react";
+import {
+  AudioPlayerProvider,
+  useAudioPlayer,
+} from "@/components/audio-player";
+import { LessonPlayerView } from "@/components/app/lesson-player";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  getUnitForPlayback,
+  type PlaybackLesson,
+  type PlaybackPayload,
+  type PlaybackUnit,
+} from "@/lib/domains/courses/actions/playback";
+import { cn } from "@/lib/utils";
+
+const COUNTDOWN_SECONDS = 5;
+
+type Props = {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  courseSlug: string;
+  unitSlug: string;
+  startLessonSlug: string;
+};
+
+export function LessonDialog({
+  open,
+  onOpenChange,
+  courseSlug,
+  unitSlug,
+  startLessonSlug,
+}: Props) {
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent
+        showCloseButton={false}
+        className="flex h-[100svh] w-screen max-w-none flex-col overflow-hidden rounded-none p-0 sm:max-w-none"
+      >
+        <DialogTitle className="sr-only">Lesson player</DialogTitle>
+        {open && (
+          <LessonDialogBody
+            courseSlug={courseSlug}
+            unitSlug={unitSlug}
+            startLessonSlug={startLessonSlug}
+            onClose={() => onOpenChange(false)}
+          />
+        )}
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function LessonDialogBody({
+  courseSlug,
+  unitSlug,
+  startLessonSlug,
+  onClose,
+}: {
+  courseSlug: string;
+  unitSlug: string;
+  startLessonSlug: string;
+  onClose: () => void;
+}) {
+  const [payload, setPayload] = useState<PlaybackPayload | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    setPayload(null);
+    setError(null);
+    (async () => {
+      const result = await getUnitForPlayback(courseSlug, unitSlug);
+      if (cancelled) return;
+      if (result.ok) setPayload(result.data);
+      else setError(result.error);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [courseSlug, unitSlug]);
+
+  if (error) {
+    return (
+      <Chrome onClose={onClose}>
+        <CenteredMessage
+          title="Couldn't load lesson"
+          body={error}
+          onClose={onClose}
+        />
+      </Chrome>
+    );
+  }
+  if (!payload) {
+    return (
+      <Chrome onClose={onClose}>
+        <div className="flex h-full items-center justify-center">
+          <div className="text-muted-foreground animate-pulse text-sm">
+            Loading lesson…
+          </div>
+        </div>
+      </Chrome>
+    );
+  }
+
+  if (payload.unit.lessons.length === 0) {
+    return (
+      <Chrome onClose={onClose} unitTitle={payload.unit.title}>
+        <CenteredMessage
+          title="No lessons in this unit"
+          body="Check back soon."
+          onClose={onClose}
+        />
+      </Chrome>
+    );
+  }
+
+  const startIndex = Math.max(
+    0,
+    payload.unit.lessons.findIndex((l) => l.slug === startLessonSlug),
+  );
+
+  return (
+    <Playback unit={payload.unit} startIndex={startIndex} onClose={onClose} />
+  );
+}
+
+type Phase = "countdown" | "playing" | "completed" | "error";
+
+function Playback({
+  unit,
+  startIndex,
+  onClose,
+}: {
+  unit: PlaybackUnit;
+  startIndex: number;
+  onClose: () => void;
+}) {
+  const [currentIndex, setCurrentIndex] = useState(startIndex);
+  const [phase, setPhase] = useState<Phase>("countdown");
+  const [countdown, setCountdown] = useState(COUNTDOWN_SECONDS);
+
+  function handleEnded() {
+    setCurrentIndex((i) => {
+      const next = i + 1;
+      if (next >= unit.lessons.length) {
+        setPhase("completed");
+        return i;
+      }
+      setCountdown(COUNTDOWN_SECONDS);
+      setPhase("countdown");
+      return next;
+    });
+  }
+
+  return (
+    <AudioPlayerProvider onEnded={handleEnded}>
+      <PlaybackView
+        unit={unit}
+        currentIndex={currentIndex}
+        setCurrentIndex={setCurrentIndex}
+        phase={phase}
+        setPhase={setPhase}
+        countdown={countdown}
+        setCountdown={setCountdown}
+        onClose={onClose}
+      />
+    </AudioPlayerProvider>
+  );
+}
+
+function PlaybackView({
+  unit,
+  currentIndex,
+  setCurrentIndex,
+  phase,
+  setPhase,
+  countdown,
+  setCountdown,
+  onClose,
+}: {
+  unit: PlaybackUnit;
+  currentIndex: number;
+  setCurrentIndex: (updater: (i: number) => number) => void;
+  phase: Phase;
+  setPhase: (p: Phase) => void;
+  countdown: number;
+  setCountdown: (n: number) => void;
+  onClose: () => void;
+}) {
+  const { play, close } = useAudioPlayer();
+  const lesson = unit.lessons[currentIndex];
+
+  useEffect(() => {
+    if (phase === "countdown") close();
+  }, [phase, currentIndex, close]);
+
+  useEffect(() => {
+    if (phase !== "countdown") return;
+    if (countdown <= 1) {
+      const id = setTimeout(() => {
+        const version = pickPlayableVersion(lesson.audioVersions);
+        if (!version || !version.signedUrl) {
+          setPhase("error");
+          return;
+        }
+        play({
+          id: version.id,
+          label: version.label,
+          src: version.signedUrl,
+          durationSeconds: version.audioDurationSeconds,
+        });
+        setPhase("playing");
+      }, 1000);
+      return () => clearTimeout(id);
+    }
+    const id = setTimeout(() => setCountdown(countdown - 1), 1000);
+    return () => clearTimeout(id);
+  }, [phase, countdown, lesson, play, setCountdown, setPhase]);
+
+  const showPlayback = phase === "countdown" || phase === "playing";
+  const hasPrev = currentIndex > 0;
+  const hasNext = currentIndex < unit.lessons.length - 1;
+
+  function goToLesson(delta: -1 | 1) {
+    const target = currentIndex + delta;
+    if (target < 0 || target >= unit.lessons.length) return;
+    close();
+    setCurrentIndex(() => target);
+    setCountdown(COUNTDOWN_SECONDS);
+    setPhase("countdown");
+  }
+
+  return (
+    <Chrome
+      onClose={onClose}
+      unitTitle={showPlayback ? unit.title : undefined}
+      lessonTitle={showPlayback ? lesson.title : undefined}
+      bottom={
+        showPlayback ? (
+          <VersionSelector versions={lesson.audioVersions} />
+        ) : null
+      }
+    >
+      {showPlayback ? (
+        <div className="flex h-full flex-col gap-8 px-6 pb-8 pt-6">
+          <div className="relative flex-1">
+            <div className="h-full rounded-3xl border-2 border-dashed border-border/60 bg-muted/30" />
+            {phase === "countdown" && (
+              <div
+                className="absolute inset-0 flex flex-col items-center justify-center gap-4 px-6 text-center"
+                aria-live="polite"
+              >
+                <p className="text-muted-foreground text-sm uppercase tracking-widest">
+                  Starting in
+                </p>
+                <div
+                  key={countdown}
+                  className="font-heading text-[10rem] font-semibold leading-none tabular-nums duration-300 animate-in fade-in-0 zoom-in-95"
+                >
+                  {countdown}
+                </div>
+              </div>
+            )}
+            {hasPrev && (
+              <LessonNavChevron
+                direction="prev"
+                onClick={() => goToLesson(-1)}
+              />
+            )}
+            {hasNext && (
+              <LessonNavChevron
+                direction="next"
+                onClick={() => goToLesson(1)}
+              />
+            )}
+          </div>
+          <LessonPlayerView disabled={phase !== "playing"} />
+        </div>
+      ) : phase === "completed" ? (
+        <CompletedBody unitTitle={unit.title} onClose={onClose} />
+      ) : (
+        <CenteredMessage
+          title="This lesson has no audio"
+          body="Try a different lesson or contact support."
+          onClose={onClose}
+        />
+      )}
+    </Chrome>
+  );
+}
+
+function LessonNavChevron({
+  direction,
+  onClick,
+}: {
+  direction: "prev" | "next";
+  onClick: () => void;
+}) {
+  const Icon = direction === "prev" ? ChevronLeft : ChevronRight;
+  const label = direction === "prev" ? "Previous lesson" : "Next lesson";
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-label={label}
+      className={cn(
+        "group absolute top-1/2 -translate-y-1/2 flex items-center justify-center",
+        "text-muted-foreground/40 hover:text-muted-foreground transition-colors",
+        "h-32 w-16 rounded-full",
+        "focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring/50",
+        direction === "prev" ? "left-2" : "right-2",
+      )}
+    >
+      <Icon className="size-12" />
+    </button>
+  );
+}
+
+function Chrome({
+  onClose,
+  unitTitle,
+  lessonTitle,
+  bottom,
+  children,
+}: {
+  onClose: () => void;
+  unitTitle?: string;
+  lessonTitle?: string;
+  bottom?: React.ReactNode;
+  children: React.ReactNode;
+}) {
+  return (
+    <>
+      <header className="flex items-center gap-4 border-b-2 border-border px-6 py-4">
+        <Button
+          variant="ghost"
+          onClick={onClose}
+          className="text-muted-foreground hover:text-foreground h-14 gap-2 px-4 text-base font-medium [&_svg:not([class*='size-'])]:size-6"
+        >
+          <X />
+          <span>Close</span>
+        </Button>
+        <div className="min-w-0 flex-1 px-4 text-center">
+          {unitTitle && (
+            <p className="text-muted-foreground truncate text-xs uppercase tracking-widest">
+              {unitTitle}
+            </p>
+          )}
+          {lessonTitle && (
+            <h1 className="font-heading truncate text-lg font-semibold tracking-tight">
+              {lessonTitle}
+            </h1>
+          )}
+        </div>
+        <div aria-hidden="true" className="h-14 w-[140px] shrink-0" />
+      </header>
+
+      <main className="flex flex-1 flex-col overflow-hidden">{children}</main>
+
+      <footer className="flex min-h-20 items-center justify-center border-t-2 border-border px-6 py-4">
+        {bottom}
+      </footer>
+    </>
+  );
+}
+
+function VersionSelector({
+  versions,
+}: {
+  versions: PlaybackLesson["audioVersions"];
+}) {
+  const { track, play } = useAudioPlayer();
+  const playable = versions.filter((v) => v.signedUrl);
+  const currentByFlag = playable.find((v) => v.isCurrent);
+  const initial = currentByFlag ?? playable[0] ?? null;
+  const activeVersion = versions.find((v) => v.id === track?.id) ?? initial;
+
+  if (!activeVersion) return null;
+
+  function select(v: PlaybackLesson["audioVersions"][number]) {
+    if (!v.signedUrl) return;
+    play({
+      id: v.id,
+      label: v.label,
+      src: v.signedUrl,
+      durationSeconds: v.audioDurationSeconds,
+    });
+  }
+
+  if (playable.length < 2) {
+    return (
+      <span className="text-muted-foreground px-3 text-sm">
+        {activeVersion.label}
+      </span>
+    );
+  }
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button
+          variant="ghost"
+          className="text-muted-foreground hover:text-foreground h-12 text-base"
+        >
+          <span>{activeVersion.label}</span>
+          <ChevronDown data-icon="inline-end" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="center" side="top" className="min-w-64">
+        {versions.map((v) => {
+          const isActive = v.id === activeVersion.id;
+          const disabled = !v.signedUrl;
+          return (
+            <DropdownMenuItem
+              key={v.id}
+              disabled={disabled}
+              onSelect={() => select(v)}
+              className="flex items-center justify-between gap-2"
+            >
+              <span className="flex items-center gap-2">
+                <Check
+                  className={cn(
+                    "size-3.5",
+                    isActive ? "opacity-100" : "opacity-0",
+                  )}
+                />
+                <span className="font-medium">{v.label}</span>
+                {v.isCurrent && (
+                  <Badge variant="secondary" className="text-xs">
+                    Current
+                  </Badge>
+                )}
+              </span>
+              <span className="text-muted-foreground font-mono text-xs tabular-nums">
+                {formatTime(v.audioDurationSeconds ?? 0)}
+              </span>
+            </DropdownMenuItem>
+          );
+        })}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
+
+function CompletedBody({
+  unitTitle,
+  onClose,
+}: {
+  unitTitle: string;
+  onClose: () => void;
+}) {
+  return (
+    <div className="flex h-full flex-col items-center justify-center gap-6 px-6 text-center">
+      <CheckCircle2 className="text-primary size-20" />
+      <div className="flex max-w-md flex-col gap-2">
+        <h2 className="font-heading text-3xl font-semibold tracking-tight">
+          Unit complete
+        </h2>
+        <p className="text-muted-foreground">
+          Nice work — you&apos;ve finished every lesson in{" "}
+          <span className="text-foreground font-medium">{unitTitle}</span>.
+        </p>
+      </div>
+      <Button
+        variant="outline"
+        size="lg"
+        className="text-muted-foreground h-14 px-8 text-base"
+        onClick={onClose}
+      >
+        Back to course
+      </Button>
+    </div>
+  );
+}
+
+function CenteredMessage({
+  title,
+  body,
+  onClose,
+}: {
+  title: string;
+  body: string;
+  onClose: () => void;
+}) {
+  return (
+    <div className="flex h-full flex-col items-center justify-center gap-4 px-6 text-center">
+      <h2 className="font-heading text-xl font-semibold">{title}</h2>
+      <p className="text-muted-foreground max-w-md text-sm">{body}</p>
+      <Button variant="outline" size="lg" onClick={onClose}>
+        Close
+      </Button>
+    </div>
+  );
+}
+
+function pickPlayableVersion(versions: PlaybackLesson["audioVersions"]) {
+  const playable = versions.filter((v) => v.signedUrl);
+  return playable.find((v) => v.isCurrent) ?? playable[0] ?? null;
+}
+
+function formatTime(seconds: number): string {
+  if (!Number.isFinite(seconds) || seconds < 0) return "0:00";
+  const total = Math.floor(seconds);
+  const m = Math.floor(total / 60);
+  const s = total % 60;
+  return `${m}:${s.toString().padStart(2, "0")}`;
+}

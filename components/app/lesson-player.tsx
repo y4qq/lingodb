@@ -1,233 +1,173 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import Link from "next/link";
+import { useState } from "react";
 import {
-  Check,
-  ChevronDown,
-  ChevronLeft,
   Pause,
   Play,
   RotateCcw,
   RotateCw,
+  Volume,
+  Volume1,
+  Volume2,
+  VolumeX,
 } from "lucide-react";
-import {
-  AudioPlayerProvider,
-  useAudioPlayer,
-} from "@/components/audio-player";
-import { Badge } from "@/components/ui/badge";
+import { useAudioPlayer } from "@/components/audio-player";
 import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { Slider } from "@/components/ui/slider";
 import { cn } from "@/lib/utils";
 
-export type LessonPlayerVersion = {
-  id: string;
-  label: string;
-  audioDurationSeconds: number | null;
-  isCurrent: boolean;
-  signedUrl: string | null;
-};
+const SPEED_STEPS = [0.75, 1, 1.25, 1.5, 1.75, 2];
+const VOLUME_STEPS = [0, 0.25, 0.5, 0.75, 1];
 
 type Props = {
-  courseSlug: string;
-  unitTitle: string;
-  lessonTitle: string;
-  lessonDescription: string | null;
-  versions: LessonPlayerVersion[];
+  disabled?: boolean;
 };
 
-export function LessonPlayer(props: Props) {
-  return (
-    <AudioPlayerProvider>
-      <LessonPlayerUI {...props} />
-    </AudioPlayerProvider>
-  );
-}
-
-function LessonPlayerUI({
-  courseSlug,
-  unitTitle,
-  lessonTitle,
-  lessonDescription,
-  versions,
-}: Props) {
-  const { track, isPlaying, currentTime, duration, play, toggle, seek, skipBy } =
-    useAudioPlayer();
+export function LessonPlayerView({ disabled = false }: Props) {
+  const {
+    track,
+    isPlaying,
+    currentTime,
+    duration,
+    playbackRate,
+    volume,
+    toggle,
+    seek,
+    skipBy,
+    setPlaybackRate,
+    setVolume,
+  } = useAudioPlayer();
   const [scrubbing, setScrubbing] = useState<number | null>(null);
-  const startedRef = useRef(false);
-
-  const playable = versions.filter((v) => v.signedUrl);
-  const currentByFlag = playable.find((v) => v.isCurrent);
-  const initial = currentByFlag ?? playable[0] ?? null;
-  const activeVersion = versions.find((v) => v.id === track?.id) ?? initial;
-
-  useEffect(() => {
-    if (startedRef.current || !initial) return;
-    startedRef.current = true;
-    play({
-      id: initial.id,
-      label: initial.label,
-      src: initial.signedUrl!,
-      durationSeconds: initial.audioDurationSeconds,
-    });
-  }, [initial, play]);
 
   const max = duration > 0 ? duration : track?.durationSeconds ?? 0;
   const displayTime = scrubbing ?? currentTime;
   const remaining = Math.max(0, max - displayTime);
+  const transportDisabled = disabled || !track;
 
-  function selectVersion(v: LessonPlayerVersion) {
-    if (!v.signedUrl) return;
-    play({
-      id: v.id,
-      label: v.label,
-      src: v.signedUrl,
-      durationSeconds: v.audioDurationSeconds,
-    });
+  function cycleSpeed() {
+    const idx = SPEED_STEPS.findIndex((s) => Math.abs(s - playbackRate) < 0.01);
+    const next = SPEED_STEPS[(idx + 1) % SPEED_STEPS.length] ?? 1;
+    setPlaybackRate(next);
+  }
+
+  function cycleVolume() {
+    const idx = VOLUME_STEPS.findIndex((v) => Math.abs(v - volume) < 0.01);
+    const next =
+      VOLUME_STEPS[(idx + 1) % VOLUME_STEPS.length] ?? 1;
+    setVolume(next);
   }
 
   return (
-    <div className="flex min-h-svh flex-col">
-      <header className="px-6 py-4">
-        <Button asChild variant="ghost" size="icon" aria-label="Back to course">
-          <Link href={`/courses/${courseSlug}`}>
-            <ChevronLeft />
-          </Link>
+    <div className="flex flex-col gap-6">
+      <div className="flex flex-col gap-2">
+        <Slider
+          min={0}
+          max={max || 1}
+          step={0.1}
+          value={[displayTime]}
+          onValueChange={([v]) => setScrubbing(v)}
+          onValueCommit={([v]) => {
+            setScrubbing(null);
+            seek(v);
+          }}
+          disabled={transportDisabled || max <= 0}
+          className="[&_[data-slot=slider-range]]:bg-muted-foreground/70 [&_[data-slot=slider-track]]:bg-muted [&_[data-slot=slider-thumb]]:bg-muted-foreground [&_[data-slot=slider-thumb]]:ring-transparent"
+          aria-label="Seek"
+        />
+        <div className="text-muted-foreground flex justify-between font-mono text-base tabular-nums">
+          <span>{formatTime(displayTime)}</span>
+          <span>-{formatTime(remaining)}</span>
+        </div>
+      </div>
+
+      <div className="flex items-center justify-between gap-4">
+        <Button
+          variant="ghost"
+          onClick={cycleSpeed}
+          aria-label={`Playback speed ${playbackRate}x`}
+          className="text-muted-foreground hover:text-foreground h-14 min-w-16 rounded-full text-base font-semibold tabular-nums"
+        >
+          {formatSpeed(playbackRate)}
         </Button>
-      </header>
 
-      <main className="flex flex-1 flex-col items-center justify-center gap-12 px-6 py-8">
-        <div className="flex max-w-xl flex-col items-center gap-2 text-center">
-          <p className="text-muted-foreground text-sm">{unitTitle}</p>
-          <h1 className="text-2xl font-semibold tracking-tight">{lessonTitle}</h1>
-          {lessonDescription && (
-            <p className="text-muted-foreground mt-2 text-sm">
-              {lessonDescription}
-            </p>
+        <div className="flex items-center gap-6">
+          <Button
+            variant="ghost"
+            onClick={() => skipBy(-15)}
+            disabled={transportDisabled}
+            aria-label="Back 15 seconds"
+            className="text-muted-foreground hover:text-foreground size-20 rounded-full"
+          >
+            <SkipIcon direction="back" label="15" />
+          </Button>
+          <Button
+            variant="ghost"
+            onClick={toggle}
+            disabled={transportDisabled}
+            aria-label={isPlaying ? "Pause" : "Play"}
+            className="text-muted-foreground hover:text-foreground size-28 rounded-full [&_svg:not([class*='size-'])]:size-16"
+          >
+            {isPlaying ? (
+              <Pause className="fill-current" />
+            ) : (
+              <Play className="translate-x-1 fill-current" />
+            )}
+          </Button>
+          <Button
+            variant="ghost"
+            onClick={() => skipBy(15)}
+            disabled={transportDisabled}
+            aria-label="Forward 15 seconds"
+            className="text-muted-foreground hover:text-foreground size-20 rounded-full"
+          >
+            <SkipIcon direction="forward" label="15" />
+          </Button>
+        </div>
+
+        <Button
+          variant="ghost"
+          onClick={cycleVolume}
+          aria-label={`Volume ${Math.round(volume * 100)}%`}
+          className={cn(
+            "text-muted-foreground hover:text-foreground h-14 min-w-16 rounded-full",
+            "[&_svg:not([class*='size-'])]:size-7",
           )}
-        </div>
-
-        <div className="flex w-full max-w-md flex-col gap-6">
-          <div className="flex items-center gap-3">
-            <span className="text-muted-foreground w-10 text-right font-mono text-xs tabular-nums">
-              {formatTime(displayTime)}
-            </span>
-            <Slider
-              min={0}
-              max={max || 1}
-              step={0.1}
-              value={[displayTime]}
-              onValueChange={([v]) => setScrubbing(v)}
-              onValueCommit={([v]) => {
-                setScrubbing(null);
-                seek(v);
-              }}
-              disabled={max <= 0}
-              className="flex-1"
-              aria-label="Seek"
-            />
-            <span className="text-muted-foreground w-12 font-mono text-xs tabular-nums">
-              -{formatTime(remaining)}
-            </span>
-          </div>
-
-          <div className="flex items-center justify-center gap-6">
-            <Button
-              variant="ghost"
-              size="icon-lg"
-              onClick={() => skipBy(-15)}
-              aria-label="Back 15 seconds"
-            >
-              <RotateCcw />
-              <span className="text-[10px] font-medium">15</span>
-            </Button>
-            <Button
-              size="icon"
-              className="size-16 rounded-full"
-              onClick={toggle}
-              disabled={!track}
-              aria-label={isPlaying ? "Pause" : "Play"}
-            >
-              {isPlaying ? (
-                <Pause className="size-6 fill-current" />
-              ) : (
-                <Play className="size-6 translate-x-px fill-current" />
-              )}
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon-lg"
-              onClick={() => skipBy(15)}
-              aria-label="Forward 15 seconds"
-            >
-              <RotateCw />
-              <span className="text-[10px] font-medium">15</span>
-            </Button>
-          </div>
-        </div>
-      </main>
-
-      <footer className="flex items-center justify-center px-6 py-6">
-        {activeVersion &&
-          (playable.length >= 2 ? (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="text-muted-foreground hover:text-foreground"
-                >
-                  <span>{activeVersion.label}</span>
-                  <ChevronDown data-icon="inline-end" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="center" className="min-w-56">
-                {versions.map((v) => {
-                  const isActive = v.id === activeVersion.id;
-                  const disabled = !v.signedUrl;
-                  return (
-                    <DropdownMenuItem
-                      key={v.id}
-                      disabled={disabled}
-                      onSelect={() => selectVersion(v)}
-                      className="flex items-center justify-between gap-2"
-                    >
-                      <span className="flex items-center gap-2">
-                        <Check
-                          className={cn(
-                            "size-3.5",
-                            isActive ? "opacity-100" : "opacity-0",
-                          )}
-                        />
-                        <span className="font-medium">{v.label}</span>
-                        {v.isCurrent && (
-                          <Badge variant="secondary" className="text-xs">
-                            Current
-                          </Badge>
-                        )}
-                      </span>
-                      <span className="text-muted-foreground font-mono text-xs tabular-nums">
-                        {formatTime(v.audioDurationSeconds ?? 0)}
-                      </span>
-                    </DropdownMenuItem>
-                  );
-                })}
-              </DropdownMenuContent>
-            </DropdownMenu>
-          ) : (
-            <span className="text-muted-foreground px-3 text-sm">
-              {activeVersion.label}
-            </span>
-          ))}
-      </footer>
+        >
+          <VolumeIcon volume={volume} />
+        </Button>
+      </div>
     </div>
   );
+}
+
+function SkipIcon({
+  direction,
+  label,
+}: {
+  direction: "back" | "forward";
+  label: string;
+}) {
+  const Icon = direction === "back" ? RotateCcw : RotateCw;
+  return (
+    <span className="relative inline-flex size-12 items-center justify-center">
+      <Icon className="size-12" />
+      <span className="absolute text-[11px] font-semibold leading-none">
+        {label}
+      </span>
+    </span>
+  );
+}
+
+function VolumeIcon({ volume }: { volume: number }) {
+  if (volume <= 0.01) return <VolumeX />;
+  if (volume < 0.34) return <Volume />;
+  if (volume < 0.67) return <Volume1 />;
+  return <Volume2 />;
+}
+
+function formatSpeed(rate: number): string {
+  if (Number.isInteger(rate)) return `${rate}×`;
+  return `${rate}×`;
 }
 
 function formatTime(seconds: number): string {

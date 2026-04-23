@@ -6,7 +6,7 @@ import {
   CommentsPanel,
   CommentsSidebar,
 } from "@/components/app/comments-panel";
-import { UnitCard } from "@/components/app/unit-card";
+import { UnitLessons } from "@/components/app/unit-lessons";
 import {
   FloatingPanel,
   FloatingPanelBody,
@@ -59,15 +59,17 @@ async function Content({ params }: Props) {
                       No lessons yet.
                     </p>
                   ) : (
-                    unit.lessons.map((lesson) => (
-                      <UnitCard
-                        key={lesson.id}
-                        href={`/courses/${course.slug}/${unit.slug}/${lesson.slug}`}
-                        icon={lesson.icon}
-                        title={lesson.title}
-                        description={lesson.description}
-                      />
-                    ))
+                    <UnitLessons
+                      courseSlug={course.slug}
+                      unitSlug={unit.slug}
+                      lessons={unit.lessons.map((l) => ({
+                        id: l.id,
+                        slug: l.slug,
+                        icon: l.icon,
+                        title: l.title,
+                        description: l.description,
+                      }))}
+                    />
                   )}
                 </section>
               ))
