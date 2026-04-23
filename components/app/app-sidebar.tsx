@@ -39,9 +39,13 @@ export function AppSidebar({ userEmail, userName, enrollments }: Props) {
 
   return (
     <Sidebar variant="floating">
-      <SidebarHeader className="h-[70px] flex-row items-center border-b-2 border-border py-0 gap-0">
-        <span className="font-heading text-2xl font-extrabold tracking-tight text-chart-3">
-          Fluent Fast
+      <SidebarHeader className="h-[70px] flex-row items-center gap-2.5 border-b-2 border-border py-0">
+        <span className="inline-flex size-6 items-center justify-center rounded-[0.25rem] bg-[var(--primary-400)] font-heading text-base font-extrabold text-white shadow-sm">
+          <span>F</span>
+          <span className="-ml-1 rotate-180">F</span>
+        </span>
+        <span className="font-heading text-base font-extrabold tracking-tight leading-none">
+          FluentFast
         </span>
       </SidebarHeader>
       <SidebarContent>
