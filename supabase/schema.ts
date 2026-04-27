@@ -8,6 +8,7 @@ import {
   pgSchema,
   pgTable,
   primaryKey,
+  smallint,
   text,
   timestamp,
   unique,
@@ -150,6 +151,26 @@ export const userLessonProgress = pgTable('user_lesson_progress', {
   check(
     'user_lesson_progress_position_nonnegative_check',
     sql`${t.lastPositionSeconds} >= 0`,
+  ),
+]).enableRLS();
+
+export const userLessonFeedback = pgTable('user_lesson_feedback', {
+  userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  lessonId: uuid('lesson_id').notNull().references(() => lessons.id, { onDelete: 'cascade' }),
+  rating: smallint('rating').notNull(),
+  comment: text('comment'),
+  ...timestamps,
+}, (t) => [
+  primaryKey({ columns: [t.userId, t.lessonId], name: 'user_lesson_feedback_pkey' }),
+  index('user_lesson_feedback_lesson_id_created_at_idx').on(t.lessonId, t.createdAt.desc()),
+  index('user_lesson_feedback_rating_created_at_idx').on(t.rating, t.createdAt.desc()),
+  check(
+    'user_lesson_feedback_rating_range_check',
+    sql`${t.rating} BETWEEN 1 AND 5`,
+  ),
+  check(
+    'user_lesson_feedback_comment_length_check',
+    sql`${t.comment} IS NULL OR char_length(${t.comment}) BETWEEN 1 AND 4000`,
   ),
 ]).enableRLS();
 

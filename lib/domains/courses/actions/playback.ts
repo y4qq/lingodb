@@ -12,6 +12,7 @@ import {
   units,
   userCourses,
 } from "@/supabase/schema";
+import { getMyFeedbackForLessons } from "@/lib/domains/feedback/feedback.service";
 import { AUDIO_BUCKET } from "../audio.shared";
 import { getProgressForUserCourse } from "../progress.service";
 
@@ -34,6 +35,7 @@ export type PlaybackLesson = {
   lastPositionSeconds: number;
   lastAudioVersionId: string | null;
   completedAt: string | null;
+  myFeedback: { rating: number; comment: string | null } | null;
 };
 
 export type PlaybackUnit = {
@@ -134,10 +136,14 @@ export async function getUnitForPlayback(
     else versionsByLesson.set(v.lessonId, [v]);
   }
 
-  const progressByLesson = await getProgressForUserCourse(user.id, course.id);
+  const [progressByLesson, feedbackByLesson] = await Promise.all([
+    getProgressForUserCourse(user.id, course.id),
+    getMyFeedbackForLessons(user.id, lessonIds),
+  ]);
 
   const playbackLessons: PlaybackLesson[] = unit.lessons.map((l) => {
     const p = progressByLesson.get(l.id);
+    const f = feedbackByLesson.get(l.id);
     return {
       id: l.id,
       slug: l.slug,
@@ -153,6 +159,7 @@ export async function getUnitForPlayback(
       lastPositionSeconds: p?.lastPositionSeconds ?? 0,
       lastAudioVersionId: p?.lastAudioVersionId ?? null,
       completedAt: p?.completedAt ? p.completedAt.toISOString() : null,
+      myFeedback: f ? { rating: f.rating, comment: f.comment } : null,
     };
   });
 

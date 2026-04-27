@@ -18,7 +18,7 @@
   "private": true,
   "license": "SEE LICENSE IN LICENSE",
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev --port 3100",
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",

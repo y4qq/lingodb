@@ -14,6 +14,7 @@ import {
   useAudioPlayer,
 } from "@/components/audio-player";
 import { LessonPlayerView } from "@/components/app/lesson-player";
+import { LessonRatingForm } from "@/components/app/lesson-rating-form";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -140,7 +141,7 @@ function LoadingChrome({ onClose }: { onClose: () => void }) {
   );
 }
 
-type Phase = "countdown" | "playing" | "completed" | "error";
+type Phase = "countdown" | "playing" | "rating" | "completed" | "error";
 
 function Playback({
   unit,
@@ -169,16 +170,20 @@ function Playback({
         audioVersionId: version.id,
       }).catch(() => {});
     }
-    setCurrentIndex((i) => {
-      const next = i + 1;
-      if (next >= unit.lessons.length) {
-        setPhase("completed");
-        return i;
-      }
-      setCountdown(COUNTDOWN_SECONDS);
-      setPhase("countdown");
-      return next;
-    });
+    // Pause on the just-finished lesson and ask for feedback. The rating phase
+    // advances to the next lesson (or the unit-complete screen) when the user
+    // submits or skips.
+    setPhase("rating");
+  }
+
+  function advanceAfterRating() {
+    if (currentIndex >= unit.lessons.length - 1) {
+      setPhase("completed");
+      return;
+    }
+    setCurrentIndex((i) => i + 1);
+    setCountdown(COUNTDOWN_SECONDS);
+    setPhase("countdown");
   }
 
   return (
@@ -192,6 +197,7 @@ function Playback({
         countdown={countdown}
         setCountdown={setCountdown}
         onClose={onClose}
+        onAdvanceAfterRating={advanceAfterRating}
       />
       <ProgressTracker
         lesson={unit.lessons[currentIndex]}
@@ -210,6 +216,7 @@ function PlaybackView({
   countdown,
   setCountdown,
   onClose,
+  onAdvanceAfterRating,
 }: {
   unit: PlaybackUnit;
   currentIndex: number;
@@ -219,12 +226,13 @@ function PlaybackView({
   countdown: number;
   setCountdown: (n: number) => void;
   onClose: () => void;
+  onAdvanceAfterRating: () => void;
 }) {
   const { play, close } = useAudioPlayer();
   const lesson = unit.lessons[currentIndex];
 
   useEffect(() => {
-    if (phase === "countdown") close();
+    if (phase === "countdown" || phase === "rating") close();
   }, [phase, currentIndex, close]);
 
   useEffect(() => {
@@ -272,11 +280,14 @@ function PlaybackView({
     setPhase("countdown");
   }
 
+  const showLessonContext =
+    showPlayback || phase === "rating";
+
   return (
     <Chrome
       onClose={onClose}
-      unitTitle={showPlayback ? unit.title : undefined}
-      lessonTitle={showPlayback ? lesson.title : undefined}
+      unitTitle={showLessonContext ? unit.title : undefined}
+      lessonTitle={showLessonContext ? lesson.title : undefined}
       bottom={
         showPlayback ? (
           <VersionSelector versions={lesson.audioVersions} />
@@ -318,6 +329,14 @@ function PlaybackView({
           </div>
           <LessonPlayerView disabled={phase !== "playing"} />
         </div>
+      ) : phase === "rating" ? (
+        <LessonRatingForm
+          lessonId={lesson.id}
+          lessonTitle={lesson.title}
+          isLastLesson={currentIndex === unit.lessons.length - 1}
+          initial={lesson.myFeedback}
+          onDone={onAdvanceAfterRating}
+        />
       ) : phase === "completed" ? (
         <CompletedBody unitTitle={unit.title} onClose={onClose} />
       ) : (

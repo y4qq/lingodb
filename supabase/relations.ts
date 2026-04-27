@@ -11,6 +11,7 @@ import {
   units,
   tags,
   userCourses,
+  userLessonFeedback,
   userLessonProgress,
   users,
 } from "./schema";
@@ -20,6 +21,7 @@ export const usersRelations = relations(users, ({ one, many }) => ({
   moderatedComments: many(comments, { relationName: "comments_moderator" }),
   enrollments: many(userCourses),
   lessonProgress: many(userLessonProgress),
+  lessonFeedback: many(userLessonFeedback),
   activeCourse: one(courses, {
     fields: [users.activeCourseId],
     references: [courses.id],
@@ -80,6 +82,18 @@ export const lessonsRelations = relations(lessons, ({ one, many }) => ({
   dependencies: many(lessonDependencies),
   comments: many(comments),
   progress: many(userLessonProgress),
+  feedback: many(userLessonFeedback),
+}));
+
+export const userLessonFeedbackRelations = relations(userLessonFeedback, ({ one }) => ({
+  user: one(users, {
+    fields: [userLessonFeedback.userId],
+    references: [users.id],
+  }),
+  lesson: one(lessons, {
+    fields: [userLessonFeedback.lessonId],
+    references: [lessons.id],
+  }),
 }));
 
 export const userLessonProgressRelations = relations(userLessonProgress, ({ one }) => ({

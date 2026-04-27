@@ -3,7 +3,7 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BookOpen, LayoutDashboard, MessageSquare } from "lucide-react";
+import { BookOpen, LayoutDashboard, MessageSquare, Star } from "lucide-react";
 import { UserMenu } from "@/components/auth/user-menu";
 import {
   Sidebar,
@@ -42,6 +42,12 @@ const navItems: NavItem[] = [
     href: "/admin/comments",
     icon: <MessageSquare />,
     matches: (p) => p === "/admin/comments" || p.startsWith("/admin/comments/"),
+  },
+  {
+    label: "Feedback",
+    href: "/admin/feedback",
+    icon: <Star />,
+    matches: (p) => p === "/admin/feedback" || p.startsWith("/admin/feedback/"),
   },
 ];
 
