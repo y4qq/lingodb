@@ -11,7 +11,7 @@ function FloatingPanelLayout({
     <div
       data-slot="floating-panel-layout"
       className={cn(
-        "relative z-20 flex h-dvh flex-col gap-6 p-6 lg:flex-row lg:pl-0",
+        "relative z-20 flex h-dvh flex-col gap-4 p-3 sm:gap-6 sm:p-6 lg:flex-row lg:pl-0",
         className,
       )}
       {...props}
@@ -171,7 +171,7 @@ function FloatingPanelCard({
     <Comp
       data-slot="floating-panel-card"
       className={cn(
-        "group/floating-panel-card flex items-center gap-5 border-b-2 border-border bg-card px-8 py-7 text-left transition-colors",
+        "group/floating-panel-card flex items-center gap-3 border-b-2 border-border bg-card px-5 py-5 text-left transition-colors sm:gap-5 sm:px-8 sm:py-7",
         "hover:bg-muted/40",
         "focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:ring-inset",
         "disabled:cursor-not-allowed disabled:opacity-60",
@@ -202,11 +202,11 @@ function FloatingPanelTable({
   return (
     <div
       data-slot="floating-panel-table-container"
-      className="relative w-full"
+      className="relative w-full overflow-x-auto"
     >
       <table
         data-slot="floating-panel-table"
-        className={cn("w-full caption-bottom", className)}
+        className={cn("w-full min-w-max caption-bottom", className)}
         {...props}
       />
     </div>
@@ -264,7 +264,7 @@ function FloatingPanelTableHead({
     <th
       data-slot="floating-panel-table-head"
       className={cn(
-        "border-b-2 border-border px-8 py-3 text-left align-middle font-heading text-xs font-bold uppercase tracking-wider text-muted-foreground",
+        "border-b-2 border-border px-4 py-3 text-left align-middle font-heading text-xs font-bold uppercase tracking-wider text-muted-foreground sm:px-8",
         className,
       )}
       {...props}
@@ -279,7 +279,7 @@ function FloatingPanelTableCell({
   return (
     <td
       data-slot="floating-panel-table-cell"
-      className={cn("px-8 py-7 align-middle text-base", className)}
+      className={cn("px-4 py-5 align-middle text-base sm:px-8 sm:py-7", className)}
       {...props}
     />
   )

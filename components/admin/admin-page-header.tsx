@@ -80,12 +80,12 @@ function Crumb({
       {crumb.href ? (
         <Link
           href={crumb.href}
-          className="block max-w-[20ch] truncate text-muted-foreground transition-colors hover:text-foreground"
+          className="block max-w-[14ch] truncate text-muted-foreground transition-colors hover:text-foreground sm:max-w-[20ch]"
         >
           {crumb.label}
         </Link>
       ) : (
-        <span className="block max-w-[20ch] truncate text-muted-foreground">
+        <span className="block max-w-[14ch] truncate text-muted-foreground sm:max-w-[20ch]">
           {crumb.label}
         </span>
       )}

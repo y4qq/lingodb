@@ -140,7 +140,7 @@ function CommentsList({
               </div>
             )}
             {c.replies.length > 0 && (
-              <ul className="flex flex-col gap-6 pl-12">
+              <ul className="flex flex-col gap-6 pl-6 sm:pl-12">
                 {c.replies.map((r) => (
                   <li key={r.id}>
                     <CommentItem

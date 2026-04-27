@@ -1,7 +1,11 @@
 import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import { AppSidebar } from "@/components/app/app-sidebar";
-import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
+import {
+  SidebarInset,
+  SidebarProvider,
+  SidebarTrigger,
+} from "@/components/ui/sidebar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { requireUserWithProfile } from "@/lib/auth/guards";
@@ -39,7 +43,19 @@ async function AppShellInner({ children }: { children: React.ReactNode }) {
           isAdmin={profile.role === "admin"}
         />
         <SidebarInset>
-          <div className="flex flex-1 flex-col ">{children}</div>
+          <header className="sticky top-0 z-30 flex h-14 shrink-0 items-center gap-3 border-b-2 border-border bg-background px-4 md:hidden">
+            <SidebarTrigger />
+            <span className="inline-flex items-center gap-2">
+              <span className="inline-flex size-6 items-center justify-center rounded-[0.25rem] bg-[var(--primary-400)] font-heading text-base font-extrabold text-white shadow-sm">
+                <span>F</span>
+                <span className="-ml-1 rotate-180">F</span>
+              </span>
+              <span className="font-heading text-base font-extrabold tracking-tight leading-none">
+                FluentFast
+              </span>
+            </span>
+          </header>
+          <div className="flex flex-1 flex-col">{children}</div>
         </SidebarInset>
       </SidebarProvider>
     </TooltipProvider>

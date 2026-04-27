@@ -42,21 +42,21 @@ export function OnboardingFlow({ initialDisplayName }: Props) {
 
   return (
     <div className="flex min-h-svh flex-col">
-      <header className="border-border flex items-center gap-4 border-b-2 px-6 py-4">
+      <header className="border-border flex items-center gap-2 border-b-2 px-4 py-4 sm:gap-4 sm:px-6">
         <Button
           variant="ghost"
           onClick={handleLogout}
-          className="text-muted-foreground hover:text-foreground h-14 gap-2 px-4 text-base font-medium [&_svg:not([class*='size-'])]:size-6"
+          className="text-muted-foreground hover:text-foreground h-14 gap-2 px-3 text-base font-medium sm:px-4 [&_svg:not([class*='size-'])]:size-6"
         >
           <LogOut />
-          <span>Logout</span>
+          <span className="hidden sm:inline">Logout</span>
         </Button>
-        <div className="min-w-0 flex-1 px-4 text-center">
+        <div className="min-w-0 flex-1 px-2 text-center sm:px-4">
           <p className="text-muted-foreground text-xs uppercase tracking-widest">
             Welcome
           </p>
         </div>
-        <div aria-hidden="true" className="h-14 w-[140px] shrink-0" />
+        <div aria-hidden="true" className="hidden h-14 w-[140px] shrink-0 sm:block" />
       </header>
 
       <main className="flex flex-1 items-center justify-center p-6">

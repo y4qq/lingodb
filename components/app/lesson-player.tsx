@@ -80,23 +80,23 @@ export function LessonPlayerView({ disabled = false }: Props) {
         </div>
       </div>
 
-      <div className="flex items-center justify-between gap-4">
+      <div className="flex items-center justify-between gap-2 sm:gap-4">
         <Button
           variant="ghost"
           onClick={cycleSpeed}
           aria-label={`Playback speed ${playbackRate}x`}
-          className="text-muted-foreground hover:text-foreground h-14 min-w-16 rounded-full text-base font-semibold tabular-nums"
+          className="text-muted-foreground hover:text-foreground h-14 min-w-12 rounded-full text-base font-semibold tabular-nums sm:min-w-16"
         >
           {formatSpeed(playbackRate)}
         </Button>
 
-        <div className="flex items-center gap-6">
+        <div className="flex items-center gap-3 sm:gap-6">
           <Button
             variant="ghost"
             onClick={() => skipBy(-15)}
             disabled={transportDisabled}
             aria-label="Back 15 seconds"
-            className="text-muted-foreground hover:text-foreground size-20 rounded-full"
+            className="text-muted-foreground hover:text-foreground size-16 rounded-full sm:size-20"
           >
             <SkipIcon direction="back" label="15" />
           </Button>
@@ -105,7 +105,7 @@ export function LessonPlayerView({ disabled = false }: Props) {
             onClick={toggle}
             disabled={transportDisabled}
             aria-label={isPlaying ? "Pause" : "Play"}
-            className="text-muted-foreground hover:text-foreground size-28 rounded-full [&_svg:not([class*='size-'])]:size-16"
+            className="text-muted-foreground hover:text-foreground size-20 rounded-full sm:size-28 [&_svg:not([class*='size-'])]:size-12 sm:[&_svg:not([class*='size-'])]:size-16"
           >
             {isPlaying ? (
               <Pause className="fill-current" />
@@ -118,7 +118,7 @@ export function LessonPlayerView({ disabled = false }: Props) {
             onClick={() => skipBy(15)}
             disabled={transportDisabled}
             aria-label="Forward 15 seconds"
-            className="text-muted-foreground hover:text-foreground size-20 rounded-full"
+            className="text-muted-foreground hover:text-foreground size-16 rounded-full sm:size-20"
           >
             <SkipIcon direction="forward" label="15" />
           </Button>
@@ -129,7 +129,7 @@ export function LessonPlayerView({ disabled = false }: Props) {
           onClick={cycleVolume}
           aria-label={`Volume ${Math.round(volume * 100)}%`}
           className={cn(
-            "text-muted-foreground hover:text-foreground h-14 min-w-16 rounded-full",
+            "text-muted-foreground hover:text-foreground h-14 min-w-12 rounded-full sm:min-w-16",
             "[&_svg:not([class*='size-'])]:size-7",
           )}
         >

@@ -295,7 +295,7 @@ function PlaybackView({
       }
     >
       {showPlayback ? (
-        <div className="flex h-full flex-col gap-8 px-6 pb-8 pt-6">
+        <div className="flex h-full flex-col gap-6 px-4 pb-6 pt-4 sm:gap-8 sm:px-6 sm:pb-8 sm:pt-6">
           <div className="relative flex-1">
             <div className="h-full rounded-3xl border-2 border-dashed border-border/60 bg-muted/30" />
             {phase === "countdown" && (
@@ -367,12 +367,12 @@ function LessonNavChevron({
       className={cn(
         "group absolute top-1/2 -translate-y-1/2 flex items-center justify-center",
         "text-muted-foreground/40 hover:text-muted-foreground transition-colors",
-        "h-32 w-16 rounded-full",
+        "h-24 w-12 rounded-full sm:h-32 sm:w-16",
         "focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring/50",
-        direction === "prev" ? "left-2" : "right-2",
+        direction === "prev" ? "left-1 sm:left-2" : "right-1 sm:right-2",
       )}
     >
-      <Icon className="size-12" />
+      <Icon className="size-9 sm:size-12" />
     </button>
   );
 }
@@ -392,16 +392,16 @@ function Chrome({
 }) {
   return (
     <>
-      <header className="flex items-center gap-4 border-b-2 border-border px-6 py-4">
+      <header className="flex items-center gap-2 border-b-2 border-border px-4 py-4 sm:gap-4 sm:px-6">
         <Button
           variant="ghost"
           onClick={onClose}
-          className="text-muted-foreground hover:text-foreground h-14 gap-2 px-4 text-base font-medium [&_svg:not([class*='size-'])]:size-6"
+          className="text-muted-foreground hover:text-foreground h-14 gap-2 px-3 text-base font-medium sm:px-4 [&_svg:not([class*='size-'])]:size-6"
         >
           <X />
-          <span>Close</span>
+          <span className="hidden sm:inline">Close</span>
         </Button>
-        <div className="min-w-0 flex-1 px-4 text-center">
+        <div className="min-w-0 flex-1 px-2 text-center sm:px-4">
           {unitTitle && (
             <p className="text-muted-foreground truncate text-xs uppercase tracking-widest">
               {unitTitle}
@@ -413,7 +413,7 @@ function Chrome({
             </h1>
           )}
         </div>
-        <div aria-hidden="true" className="h-14 w-[140px] shrink-0" />
+        <div aria-hidden="true" className="hidden h-14 w-[140px] shrink-0 sm:block" />
       </header>
 
       <main className="flex flex-1 flex-col overflow-hidden">{children}</main>
