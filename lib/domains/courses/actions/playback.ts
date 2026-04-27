@@ -13,6 +13,7 @@ import {
   userCourses,
 } from "@/supabase/schema";
 import { AUDIO_BUCKET } from "../audio.shared";
+import { getProgressForUserCourse } from "../progress.service";
 
 const SIGNED_URL_TTL_SECONDS = 60 * 60 * 2;
 
@@ -30,6 +31,9 @@ export type PlaybackLesson = {
   title: string;
   description: string | null;
   audioVersions: PlaybackAudioVersion[];
+  lastPositionSeconds: number;
+  lastAudioVersionId: string | null;
+  completedAt: string | null;
 };
 
 export type PlaybackUnit = {
@@ -130,19 +134,27 @@ export async function getUnitForPlayback(
     else versionsByLesson.set(v.lessonId, [v]);
   }
 
-  const playbackLessons: PlaybackLesson[] = unit.lessons.map((l) => ({
-    id: l.id,
-    slug: l.slug,
-    title: l.title,
-    description: l.description,
-    audioVersions: (versionsByLesson.get(l.id) ?? []).map((v) => ({
-      id: v.id,
-      label: v.label,
-      audioDurationSeconds: v.audioDurationSeconds,
-      isCurrent: v.isCurrent,
-      signedUrl: signedByVersionId.get(v.id) ?? null,
-    })),
-  }));
+  const progressByLesson = await getProgressForUserCourse(user.id, course.id);
+
+  const playbackLessons: PlaybackLesson[] = unit.lessons.map((l) => {
+    const p = progressByLesson.get(l.id);
+    return {
+      id: l.id,
+      slug: l.slug,
+      title: l.title,
+      description: l.description,
+      audioVersions: (versionsByLesson.get(l.id) ?? []).map((v) => ({
+        id: v.id,
+        label: v.label,
+        audioDurationSeconds: v.audioDurationSeconds,
+        isCurrent: v.isCurrent,
+        signedUrl: signedByVersionId.get(v.id) ?? null,
+      })),
+      lastPositionSeconds: p?.lastPositionSeconds ?? 0,
+      lastAudioVersionId: p?.lastAudioVersionId ?? null,
+      completedAt: p?.completedAt ? p.completedAt.toISOString() : null,
+    };
+  });
 
   return {
     ok: true,

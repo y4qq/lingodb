@@ -12,6 +12,10 @@ import {
 } from "@/supabase/schema";
 import type { CreateCourseInput, UpdateCourseInput } from "./course.validation";
 import type { CreateLessonInput, UpdateLessonInput } from "./lesson.validation";
+import {
+  getProgressForUserCourse,
+  type ProgressRow,
+} from "./progress.service";
 import type { CreateUnitInput, UpdateUnitInput } from "./unit.validation";
 
 export async function listPublishedCourses() {
@@ -125,7 +129,41 @@ export async function getCourseForUser(userId: string, slug: string) {
   });
   if (!enrollment) return null;
 
-  return course;
+  const progressByLesson = await getProgressForUserCourse(userId, course.id);
+
+  const unitsWithProgress = course.units.map((u) => {
+    const lessonsWithProgress = u.lessons.map((l) => {
+      const p: ProgressRow | undefined = progressByLesson.get(l.id);
+      return {
+        ...l,
+        progress: {
+          lastPositionSeconds: p?.lastPositionSeconds ?? 0,
+          lastAudioVersionId: p?.lastAudioVersionId ?? null,
+          completedAt: p?.completedAt ?? null,
+        },
+      };
+    });
+    const completedLessonCount = lessonsWithProgress.filter(
+      (l) => l.progress.completedAt !== null,
+    ).length;
+    return {
+      ...u,
+      lessons: lessonsWithProgress,
+      completedLessonCount,
+      totalLessonCount: lessonsWithProgress.length,
+    };
+  });
+
+  const completedUnitCount = unitsWithProgress.filter(
+    (u) => u.totalLessonCount > 0 && u.completedLessonCount === u.totalLessonCount,
+  ).length;
+
+  return {
+    ...course,
+    units: unitsWithProgress,
+    completedUnitCount,
+    totalUnitCount: unitsWithProgress.length,
+  };
 }
 
 export async function getUnitForUser(

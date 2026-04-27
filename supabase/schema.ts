@@ -136,6 +136,23 @@ export const userCourses = pgTable('user_courses', {
   index('user_courses_course_id_idx').on(t.courseId),
 ]).enableRLS();
 
+export const userLessonProgress = pgTable('user_lesson_progress', {
+  userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  lessonId: uuid('lesson_id').notNull().references(() => lessons.id, { onDelete: 'cascade' }),
+  lastPositionSeconds: integer('last_position_seconds').notNull().default(0),
+  lastAudioVersionId: uuid('last_audio_version_id').references(() => lessonAudioVersions.id, { onDelete: 'set null' }),
+  completedAt: timestamp('completed_at', { withTimezone: true }),
+  lastPlayedAt: timestamp('last_played_at', { withTimezone: true }).notNull().defaultNow(),
+  ...timestamps,
+}, (t) => [
+  primaryKey({ columns: [t.userId, t.lessonId], name: 'user_lesson_progress_pkey' }),
+  index('user_lesson_progress_user_id_idx').on(t.userId),
+  check(
+    'user_lesson_progress_position_nonnegative_check',
+    sql`${t.lastPositionSeconds} >= 0`,
+  ),
+]).enableRLS();
+
 export const lessonTags = pgTable('lesson_tags', {
   lessonId: uuid('lesson_id').notNull().references(() => lessons.id, { onDelete: 'cascade' }),
   tagId: uuid('tag_id').notNull().references(() => tags.id, { onDelete: 'cascade' }),

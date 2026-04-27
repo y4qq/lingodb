@@ -17,6 +17,7 @@ export type Track = {
   src: string;
   context?: string;
   durationSeconds?: number | null;
+  startPositionSeconds?: number;
 };
 
 export type AudioPlayerApi = {
@@ -60,11 +61,17 @@ export function AudioPlayerProvider({
     const audio = audioRef.current;
     if (!audio || !track) return;
     audio.src = track.src;
-    audio.currentTime = 0;
+    // Resume from prior position if we got one; treat near-end (within 2s of
+    // the known duration) as "already finished" and start over from 0.
+    const knownDuration = track.durationSeconds ?? 0;
+    const desiredStart = track.startPositionSeconds ?? 0;
+    const startAt =
+      knownDuration > 0 && desiredStart >= knownDuration - 2 ? 0 : desiredStart;
+    audio.currentTime = startAt;
     audio.playbackRate = playbackRate;
     audio.volume = volume;
-    setCurrentTime(0);
-    setDuration(track.durationSeconds ?? 0);
+    setCurrentTime(startAt);
+    setDuration(knownDuration);
     void audio.play().catch(() => {
       // Autoplay can be blocked (no user gesture); stay paused silently.
     });

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { CheckCircle2 } from "lucide-react";
 import { FloatingPanelCard } from "@/components/ui/floating-panel";
 import { LessonDialog } from "@/components/app/lesson-dialog";
 import {
@@ -15,6 +16,10 @@ type Lesson = {
   icon: string | null;
   title: string;
   description: string | null;
+  progress: {
+    lastPositionSeconds: number;
+    completedAt: Date | null;
+  };
 };
 
 type Props = {
@@ -42,29 +47,44 @@ export function UnitLessons({ courseSlug, unitSlug, lessons }: Props) {
 
   return (
     <>
-      {lessons.map((lesson) => (
-        <FloatingPanelCard asChild key={lesson.id}>
-          <button type="button" onClick={() => openLesson(lesson.slug)}>
-            <div
-              className={cn(
-                "flex size-12 shrink-0 items-center justify-center text-4xl leading-none",
-              )}
-            >
-              {lesson.icon ?? ""}
-            </div>
-            <div className="flex min-w-0 flex-col gap-1">
-              <div className="font-heading text-base font-semibold">
-                {lesson.title}
+      {lessons.map((lesson) => {
+        const isCompleted = lesson.progress.completedAt !== null;
+        const isInProgress =
+          !isCompleted && lesson.progress.lastPositionSeconds > 0;
+        return (
+          <FloatingPanelCard asChild key={lesson.id}>
+            <button type="button" onClick={() => openLesson(lesson.slug)}>
+              <div
+                className={cn(
+                  "flex size-12 shrink-0 items-center justify-center text-4xl leading-none",
+                )}
+              >
+                {lesson.icon ?? ""}
               </div>
-              {lesson.description && (
-                <div className="text-base text-muted-foreground">
-                  {lesson.description}
+              <div className="flex min-w-0 flex-1 flex-col gap-1">
+                <div className="font-heading text-base font-semibold">
+                  {lesson.title}
                 </div>
-              )}
-            </div>
-          </button>
-        </FloatingPanelCard>
-      ))}
+                {lesson.description && (
+                  <div className="text-base text-muted-foreground">
+                    {lesson.description}
+                  </div>
+                )}
+              </div>
+              {isCompleted ? (
+                <CheckCircle2
+                  aria-label="Completed"
+                  className="size-6 shrink-0 text-primary"
+                />
+              ) : isInProgress ? (
+                <span className="shrink-0 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                  In progress
+                </span>
+              ) : null}
+            </button>
+          </FloatingPanelCard>
+        );
+      })}
       <LessonDialog
         open={opened !== null}
         onOpenChange={(open) => {

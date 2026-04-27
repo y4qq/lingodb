@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, use, useEffect, useState } from "react";
+import { Suspense, use, useEffect, useRef, useState } from "react";
 import {
   Check,
   CheckCircle2,
@@ -27,12 +27,19 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  markLessonCompleted as markLessonCompletedAction,
+  saveLessonPosition,
+} from "@/lib/domains/courses/actions/progress";
 import type {
   PlaybackLesson,
   PlaybackResult,
   PlaybackUnit,
 } from "@/lib/domains/courses/actions/playback";
 import { cn } from "@/lib/utils";
+
+const POSITION_SAVE_INTERVAL_MS = 5000;
+const COMPLETION_THRESHOLD = 0.95;
 
 const COUNTDOWN_SECONDS = 5;
 
@@ -147,8 +154,21 @@ function Playback({
   const [currentIndex, setCurrentIndex] = useState(startIndex);
   const [phase, setPhase] = useState<Phase>("countdown");
   const [countdown, setCountdown] = useState(COUNTDOWN_SECONDS);
+  // The lesson currently visible to the user. Captured in a ref so the audio
+  // provider's `onEnded` callback (which holds onto the first-render closure)
+  // can mark the right lesson when it fires.
+  const currentLessonRef = useRef(unit.lessons[startIndex]);
+  currentLessonRef.current = unit.lessons[currentIndex];
 
   function handleEnded() {
+    const lesson = currentLessonRef.current;
+    const version = lesson ? pickPlayableVersion(lesson.audioVersions) : null;
+    if (lesson && version) {
+      void markLessonCompletedAction({
+        lessonId: lesson.id,
+        audioVersionId: version.id,
+      }).catch(() => {});
+    }
     setCurrentIndex((i) => {
       const next = i + 1;
       if (next >= unit.lessons.length) {
@@ -172,6 +192,10 @@ function Playback({
         countdown={countdown}
         setCountdown={setCountdown}
         onClose={onClose}
+      />
+      <ProgressTracker
+        lesson={unit.lessons[currentIndex]}
+        active={phase === "playing"}
       />
     </AudioPlayerProvider>
   );
@@ -212,11 +236,20 @@ function PlaybackView({
           setPhase("error");
           return;
         }
+        // Resume from saved position only when the user is returning to a
+        // lesson they haven't completed; otherwise start fresh.
+        const resumeFrom =
+          lesson.completedAt === null &&
+          (lesson.lastAudioVersionId === null ||
+            lesson.lastAudioVersionId === version.id)
+            ? lesson.lastPositionSeconds
+            : 0;
         play({
           id: version.id,
           label: version.label,
           src: version.signedUrl,
           durationSeconds: version.audioDurationSeconds,
+          startPositionSeconds: resumeFrom,
         });
         setPhase("playing");
       }, 1000);
@@ -500,6 +533,75 @@ function CenteredMessage({
       </Button>
     </div>
   );
+}
+
+function ProgressTracker({
+  lesson,
+  active,
+}: {
+  lesson: PlaybackLesson | undefined;
+  active: boolean;
+}) {
+  const { track, currentTime, duration } = useAudioPlayer();
+  const lastSavedAtRef = useRef(0);
+  const lastSavedPositionRef = useRef(0);
+  const latestPositionRef = useRef(0);
+  const completedSentRef = useRef<string | null>(null);
+
+  // Mirror the latest player time into a ref so the unmount-flush effect can
+  // read it without resubscribing every frame.
+  latestPositionRef.current = currentTime;
+
+  useEffect(() => {
+    if (!active || !lesson || !track) return;
+    const lessonId = lesson.id;
+    const audioVersionId = track.id;
+    const now = Date.now();
+    const sinceLast = now - lastSavedAtRef.current;
+    const movedEnough =
+      Math.abs(currentTime - lastSavedPositionRef.current) >= 1;
+
+    if (sinceLast >= POSITION_SAVE_INTERVAL_MS && movedEnough) {
+      lastSavedAtRef.current = now;
+      lastSavedPositionRef.current = currentTime;
+      void saveLessonPosition({
+        lessonId,
+        audioVersionId,
+        positionSeconds: currentTime,
+      }).catch(() => {});
+    }
+
+    if (
+      duration > 0 &&
+      currentTime / duration >= COMPLETION_THRESHOLD &&
+      completedSentRef.current !== lessonId
+    ) {
+      completedSentRef.current = lessonId;
+      void markLessonCompletedAction({ lessonId, audioVersionId }).catch(
+        () => {},
+      );
+    }
+  }, [active, lesson, track, currentTime, duration]);
+
+  // On unmount or lesson/track change, persist the latest known position so
+  // the user can resume even if they close the dialog mid-lesson.
+  useEffect(() => {
+    if (!lesson || !track) return;
+    const lessonId = lesson.id;
+    const audioVersionId = track.id;
+    return () => {
+      const position = latestPositionRef.current;
+      if (position > 0 && position !== lastSavedPositionRef.current) {
+        void saveLessonPosition({
+          lessonId,
+          audioVersionId,
+          positionSeconds: position,
+        }).catch(() => {});
+      }
+    };
+  }, [lesson, track]);
+
+  return null;
 }
 
 function pickPlayableVersion(versions: PlaybackLesson["audioVersions"]) {
