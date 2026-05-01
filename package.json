@@ -1,10 +1,10 @@
 {
-  "name": "fluent",
-  "description": "Language-learning platform with audio lessons, moderated comments, and admin content management. Built with Next.js, Supabase, and Drizzle ORM.",
+  "name": "lingodb",
+  "description": "A language-learning platform with audio lessons, moderated community comments, and an admin surface for curating courses.",
   "author": "Fred Jones",
   "repository": {
     "type": "git",
-    "url": "https://github.com/y4qq/fluent-fast-2.git"
+    "url": "https://github.com/y4qq/lingodb.git"
   },
   "keywords": [
     "nextjs",

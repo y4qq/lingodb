@@ -1,4 +1,4 @@
-# Fluent Fast
+# LingoDB
 
 > Source available for portfolio review — see [LICENSE](./LICENSE).
 
