@@ -11,7 +11,7 @@ function FloatingPanelLayout({
     <div
       data-slot="floating-panel-layout"
       className={cn(
-        "relative z-20 flex h-dvh flex-col gap-4 p-3 sm:gap-6 sm:p-6 lg:flex-row lg:pl-0",
+        "relative z-20 flex h-dvh flex-col gap-4 p-0 sm:gap-6 sm:p-6 lg:flex-row lg:pl-0",
         className,
       )}
       {...props}

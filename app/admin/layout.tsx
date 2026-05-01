@@ -38,7 +38,7 @@ async function AdminShell({ children }: { children: React.ReactNode }) {
               Admin
             </span>
           </header>
-          <div className="flex flex-1 flex-col gap-6 p-6">{children}</div>
+          <div className="flex flex-1 flex-col gap-6 p-0 sm:p-6">{children}</div>
         </SidebarInset>
       </SidebarProvider>
     </TooltipProvider>
