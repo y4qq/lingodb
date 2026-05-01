@@ -22,6 +22,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "test": "node scripts/prepare-test-env.mjs && node --import tsx --test tests/**/*.test.ts",
     "postinstall": "node -e \"require('fs').cpSync('node_modules/react-flagpack-react-19/dist/flags','public/flags',{recursive:true})\"",
     "db:start": "supabase start",
     "db:stop": "supabase stop",

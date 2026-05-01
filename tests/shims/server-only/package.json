@@ -1,0 +1,6 @@
+{
+  "name": "server-only",
+  "version": "0.0.0-test-shim",
+  "private": true,
+  "main": "index.js"
+}
