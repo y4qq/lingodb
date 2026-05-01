@@ -1,14 +1,11 @@
 "use server";
 
-import * as Sentry from "@sentry/nextjs";
 import { revalidatePath } from "next/cache";
-import { z } from "zod";
-import { requireUser } from "@/lib/auth/guards";
 import {
-  ConflictError,
-  NotFoundError,
-  ValidationError,
-} from "@/lib/errors";
+  runUserAction as sharedRunUserAction,
+  type ActionResult,
+  zodErrorToFieldErrors,
+} from "@/lib/auth/actions";
 import * as commentService from "../comment.service";
 import {
   deleteCommentSchema,
@@ -19,11 +16,9 @@ import {
   type ReactionValue,
 } from "../comment.validation";
 
-const GENERIC_ERROR_MESSAGE = "Something went wrong. Please try again.";
-
-export type ActionResult<T> =
-  | { ok: true; data: T }
-  | { ok: false; error?: string; fieldErrors?: Record<string, string[]> };
+export const commentUserActionRuntime = {
+  runUserAction: sharedRunUserAction,
+};
 
 export async function submitCourseComment(
   _prev: ActionResult<{ id: string }> | undefined,
@@ -33,10 +28,10 @@ export async function submitCourseComment(
     Object.fromEntries(formData),
   );
   if (!parsed.success) {
-    return { ok: false, fieldErrors: toFieldErrors(parsed.error) };
+    return { ok: false, fieldErrors: zodErrorToFieldErrors(parsed.error) };
   }
 
-  return runUserAction({
+  return commentUserActionRuntime.runUserAction({
     actionName: "submitCourseComment",
     extra: { courseId: parsed.data.courseId },
     execute: async (userId) => {
@@ -61,10 +56,10 @@ export async function submitUnitComment(
     Object.fromEntries(formData),
   );
   if (!parsed.success) {
-    return { ok: false, fieldErrors: toFieldErrors(parsed.error) };
+    return { ok: false, fieldErrors: zodErrorToFieldErrors(parsed.error) };
   }
 
-  return runUserAction({
+  return commentUserActionRuntime.runUserAction({
     actionName: "submitUnitComment",
     extra: { unitId: parsed.data.unitId },
     execute: async (userId) => {
@@ -84,10 +79,10 @@ export async function submitReply(
 ): Promise<ActionResult<{ id: string }>> {
   const parsed = submitReplySchema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) {
-    return { ok: false, fieldErrors: toFieldErrors(parsed.error) };
+    return { ok: false, fieldErrors: zodErrorToFieldErrors(parsed.error) };
   }
 
-  return runUserAction({
+  return commentUserActionRuntime.runUserAction({
     actionName: "submitReply",
     extra: { parentCommentId: parsed.data.parentCommentId },
     execute: async (userId) => {
@@ -117,10 +112,10 @@ export async function toggleReaction(
 ): Promise<ActionResult<ToggleReactionResult>> {
   const parsed = toggleReactionSchema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) {
-    return { ok: false, fieldErrors: toFieldErrors(parsed.error) };
+    return { ok: false, fieldErrors: zodErrorToFieldErrors(parsed.error) };
   }
 
-  return runUserAction({
+  return commentUserActionRuntime.runUserAction({
     actionName: "toggleReaction",
     extra: {
       commentId: parsed.data.commentId,
@@ -157,10 +152,10 @@ export async function deleteOwnComment(
 ): Promise<ActionResult<{ commentId: string }>> {
   const parsed = deleteCommentSchema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) {
-    return { ok: false, fieldErrors: toFieldErrors(parsed.error) };
+    return { ok: false, fieldErrors: zodErrorToFieldErrors(parsed.error) };
   }
 
-  return runUserAction({
+  return commentUserActionRuntime.runUserAction({
     actionName: "deleteOwnComment",
     extra: { commentId: parsed.data.commentId },
     execute: async (userId) => {
@@ -176,63 +171,4 @@ export async function deleteOwnComment(
       revalidatePath("/courses/[slug]/[unitSlug]", "page");
     },
   });
-}
-
-type DomainError = ConflictError | NotFoundError | ValidationError;
-
-async function runUserAction<T>({
-  actionName,
-  execute,
-  onSuccess,
-  genericMessage = GENERIC_ERROR_MESSAGE,
-  extra = {},
-}: {
-  actionName: string;
-  execute: (userId: string) => Promise<T>;
-  onSuccess?: (data: T) => void | Promise<void>;
-  genericMessage?: string;
-  extra?: Record<string, unknown>;
-}): Promise<ActionResult<T>> {
-  const user = await requireUser();
-  Sentry.setUser({ id: user.id, email: user.email ?? undefined });
-
-  try {
-    const data = await execute(user.id);
-    await onSuccess?.(data);
-    return { ok: true, data };
-  } catch (err) {
-    if (isNextControlFlowError(err)) throw err;
-    if (isDomainError(err)) {
-      return { ok: false, error: err.message };
-    }
-    Sentry.captureException(err, {
-      extra: { action: actionName, ...extra },
-    });
-    return { ok: false, error: genericMessage };
-  }
-}
-
-function isDomainError(err: unknown): err is DomainError {
-  return (
-    err instanceof ConflictError ||
-    err instanceof NotFoundError ||
-    err instanceof ValidationError
-  );
-}
-
-function isNextControlFlowError(err: unknown): boolean {
-  if (err === null || typeof err !== "object") return false;
-  const digest = (err as { digest?: unknown }).digest;
-  return (
-    typeof digest === "string" &&
-    (digest.startsWith("NEXT_REDIRECT") || digest === "NEXT_NOT_FOUND")
-  );
-}
-
-function toFieldErrors(error: z.ZodError): Record<string, string[]> {
-  return Object.fromEntries(
-    Object.entries(error.flatten().fieldErrors).filter(
-      (entry): entry is [string, string[]] => entry[1] !== undefined,
-    ),
-  );
 }

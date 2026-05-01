@@ -2,7 +2,10 @@
 
 import * as Sentry from "@sentry/nextjs";
 import { revalidatePath } from "next/cache";
-import { z } from "zod";
+import {
+  type ActionResult,
+  zodErrorToFieldErrors,
+} from "@/lib/auth/actions";
 import { requireAdmin } from "@/lib/auth/guards";
 import {
   ConflictError,
@@ -13,10 +16,6 @@ import * as commentService from "../comment.service";
 import { moderateCommentSchema } from "../comment.validation";
 
 const GENERIC_ERROR_MESSAGE = "Something went wrong. Please try again.";
-
-export type ActionResult<T> =
-  | { ok: true; data: T }
-  | { ok: false; error?: string; fieldErrors?: Record<string, string[]> };
 
 export async function approveComment(
   _prev: ActionResult<{ id: string }> | undefined,
@@ -46,7 +45,7 @@ async function moderate(
 ): Promise<ActionResult<{ id: string }>> {
   const parsed = moderateCommentSchema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) {
-    return { ok: false, fieldErrors: toFieldErrors(parsed.error) };
+    return { ok: false, fieldErrors: zodErrorToFieldErrors(parsed.error) };
   }
 
   return runAdminAction({
@@ -118,13 +117,5 @@ function isNextControlFlowError(err: unknown): boolean {
   return (
     typeof digest === "string" &&
     (digest.startsWith("NEXT_REDIRECT") || digest === "NEXT_NOT_FOUND")
-  );
-}
-
-function toFieldErrors(error: z.ZodError): Record<string, string[]> {
-  return Object.fromEntries(
-    Object.entries(error.flatten().fieldErrors).filter(
-      (entry): entry is [string, string[]] => entry[1] !== undefined,
-    ),
   );
 }
