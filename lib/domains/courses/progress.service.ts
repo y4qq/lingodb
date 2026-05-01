@@ -1,13 +1,12 @@
 import "server-only";
 import { and, eq, sql } from "drizzle-orm";
 import { db } from "@/lib/db";
-import { NotFoundError } from "@/lib/errors";
 import {
   lessons,
   units,
-  userCourses,
   userLessonProgress,
 } from "@/supabase/schema";
+import { assertUserEnrolledForLesson } from "./lesson-access";
 
 export type ProgressRow = {
   lessonId: string;
@@ -42,26 +41,6 @@ export async function getProgressForUserCourse(
   return map;
 }
 
-async function assertEnrolledForLesson(userId: string, lessonId: string) {
-  const lesson = await db.query.lessons.findFirst({
-    where: eq(lessons.id, lessonId),
-    columns: { id: true, unitId: true },
-    with: {
-      unit: { columns: { courseId: true } },
-    },
-  });
-  if (!lesson) throw new NotFoundError("Lesson not found");
-
-  const enrollment = await db.query.userCourses.findFirst({
-    where: and(
-      eq(userCourses.userId, userId),
-      eq(userCourses.courseId, lesson.unit.courseId),
-    ),
-    columns: { courseId: true },
-  });
-  if (!enrollment) throw new NotFoundError("Lesson not found");
-}
-
 export async function upsertLessonPosition(
   userId: string,
   input: {
@@ -70,7 +49,7 @@ export async function upsertLessonPosition(
     positionSeconds: number;
   },
 ): Promise<void> {
-  await assertEnrolledForLesson(userId, input.lessonId);
+  await assertUserEnrolledForLesson(userId, input.lessonId);
   const safePosition = Math.max(0, Math.floor(input.positionSeconds));
 
   await db
@@ -96,7 +75,7 @@ export async function markLessonCompleted(
   userId: string,
   input: { lessonId: string; audioVersionId: string },
 ): Promise<void> {
-  await assertEnrolledForLesson(userId, input.lessonId);
+  await assertUserEnrolledForLesson(userId, input.lessonId);
 
   await db
     .insert(userLessonProgress)
